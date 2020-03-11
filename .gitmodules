@@ -44,3 +44,6 @@
 [submodule "sw/ext/eigen"]
 	path = sw/ext/eigen
 	url = https://github.com/eigenteam/eigen-git-mirror.git
+[submodule "sw/ext/coursePaparazzi"]
+	path = sw/ext/coursePaparazzi
+	url = https://github.com/tudelft/coursePaparazzi
