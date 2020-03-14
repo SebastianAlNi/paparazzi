@@ -28,7 +28,7 @@
 // Own header
 #include "modules/computer_vision/cv_detect_color_object.h"
 #include "modules/computer_vision/cv.h"
-#include "subsystems/abi.h"
+#include "subsystems/abi.h" // abi deals with messaging between modules
 #include "std.h"
 
 #include <stdio.h>
@@ -37,13 +37,13 @@
 #include "pthread.h"
 
 #define PRINT(string,...) fprintf(stderr, "[object_detector->%s()] " string,__FUNCTION__ , ##__VA_ARGS__)
-#if OBJECT_DETECTOR_VERBOSE
+#if OBJECT_DETECTOR_VERBOSE // initialize verbose for drone status updates
 #define VERBOSE_PRINT PRINT
 #else
 #define VERBOSE_PRINT(...)
 #endif
 
-static pthread_mutex_t mutex;
+static pthread_mutex_t mutex; // initialize mutex for thread lock -> important when changing variables that are accessed by multiple threads
 
 #ifndef COLOR_OBJECT_DETECTOR_FPS1
 #define COLOR_OBJECT_DETECTOR_FPS1 0 ///< Default FPS (zero means run at camera fps)
@@ -52,7 +52,7 @@ static pthread_mutex_t mutex;
 #define COLOR_OBJECT_DETECTOR_FPS2 0 ///< Default FPS (zero means run at camera fps)
 #endif
 
-// Filter Settings
+// Filter Settings, initialize filter variables. Values from settings (see airframe file) are assigned in init function
 uint8_t cod_lum_min1 = 0;
 uint8_t cod_lum_max1 = 0;
 uint8_t cod_cb_min1 = 0;
@@ -67,7 +67,7 @@ uint8_t cod_cb_max2 = 0;
 uint8_t cod_cr_min2 = 0;
 uint8_t cod_cr_max2 = 0;
 
-bool cod_draw1 = false;
+bool cod_draw1 = false; // defines whether image shall be drawn or not (not sure where it shall be drawn, perhaps in the live stream)
 bool cod_draw2 = false;
 
 // define global variables
@@ -98,7 +98,7 @@ static struct image_t *object_detector(struct image_t *img, uint8_t filter)
   uint8_t cr_min, cr_max;
   bool draw;
 
-  switch (filter){
+  switch (filter){ // check which filter is used here and assign color values accordingly
     case 1:
       lum_min = cod_lum_min1;
       lum_max = cod_lum_max1;
@@ -121,31 +121,31 @@ static struct image_t *object_detector(struct image_t *img, uint8_t filter)
       return img;
   };
 
-  int32_t x_c, y_c;
+  int32_t x_c, y_c; // coordinates for centroid
 
   // Filter and find centroid
-  uint32_t count = find_object_centroid(img, &x_c, &y_c, draw, lum_min, lum_max, cb_min, cb_max, cr_min, cr_max);
+  uint32_t count = find_object_centroid(img, &x_c, &y_c, draw, lum_min, lum_max, cb_min, cb_max, cr_min, cr_max); // x_c and y_c are transferred as pointers, i.e. their values are changed directly in the called function. The function also counts the amount of the specified color and returns it
   VERBOSE_PRINT("Color count %d: %u, threshold %u, x_c %d, y_c %d\n", camera, object_count, count_threshold, x_c, y_c);
   VERBOSE_PRINT("centroid %d: (%d, %d) r: %4.2f a: %4.2f\n", camera, x_c, y_c,
         hypotf(x_c, y_c) / hypotf(img->w * 0.5, img->h * 0.5), RadOfDeg(atan2f(y_c, x_c)));
 
-  pthread_mutex_lock(&mutex);
-  global_filters[filter-1].color_count = count;
+  pthread_mutex_lock(&mutex); // lock threads while accessing common variables
+  global_filters[filter-1].color_count = count; // store color amount and centroid coordinated in filter structure
   global_filters[filter-1].x_c = x_c;
   global_filters[filter-1].y_c = y_c;
-  global_filters[filter-1].updated = true;
-  pthread_mutex_unlock(&mutex);
+  global_filters[filter-1].updated = true; // store that filter data has been changed
+  pthread_mutex_unlock(&mutex); // release thread lock
 
   return img;
 }
 
-struct image_t *object_detector1(struct image_t *img);
-struct image_t *object_detector1(struct image_t *img)
+struct image_t *object_detector1(struct image_t *img); // structure declaration. Definition follows
+struct image_t *object_detector1(struct image_t *img) // structure that simply calls object_detector function and stores is return value
 {
-  return object_detector(img, 1);
+  return object_detector(img, 1); // img is the frame that must be transmitted automatically through the cv_add_device function, 1 is the filter type
 }
 
-struct image_t *object_detector2(struct image_t *img);
+struct image_t *object_detector2(struct image_t *img); // same for second filter (green)
 struct image_t *object_detector2(struct image_t *img)
 {
   return object_detector(img, 2);
@@ -157,7 +157,7 @@ void color_object_detector_init(void)
   pthread_mutex_init(&mutex, NULL);
 #ifdef COLOR_OBJECT_DETECTOR_CAMERA1
 #ifdef COLOR_OBJECT_DETECTOR_LUM_MIN1
-  cod_lum_min1 = COLOR_OBJECT_DETECTOR_LUM_MIN1;
+  cod_lum_min1 = COLOR_OBJECT_DETECTOR_LUM_MIN1; // get orange values from settings stored in airframe file
   cod_lum_max1 = COLOR_OBJECT_DETECTOR_LUM_MAX1;
   cod_cb_min1 = COLOR_OBJECT_DETECTOR_CB_MIN1;
   cod_cb_max1 = COLOR_OBJECT_DETECTOR_CB_MAX1;
@@ -167,13 +167,14 @@ void color_object_detector_init(void)
 #ifdef COLOR_OBJECT_DETECTOR_DRAW1
   cod_draw1 = COLOR_OBJECT_DETECTOR_DRAW1;
 #endif
-
+  // specify function that is always called when a new frame is received from the camera: first argument is camera, second is the function that is called, third is framerate
+  // object detector 1 deals with orange in order to detect orange poles
   cv_add_to_device(&COLOR_OBJECT_DETECTOR_CAMERA1, object_detector1, COLOR_OBJECT_DETECTOR_FPS1);
 #endif
 
 #ifdef COLOR_OBJECT_DETECTOR_CAMERA2
 #ifdef COLOR_OBJECT_DETECTOR_LUM_MIN2
-  cod_lum_min2 = COLOR_OBJECT_DETECTOR_LUM_MIN2;
+  cod_lum_min2 = COLOR_OBJECT_DETECTOR_LUM_MIN2; // get green values from settings stored in airframe file
   cod_lum_max2 = COLOR_OBJECT_DETECTOR_LUM_MAX2;
   cod_cb_min2 = COLOR_OBJECT_DETECTOR_CB_MIN2;
   cod_cb_max2 = COLOR_OBJECT_DETECTOR_CB_MAX2;
@@ -183,7 +184,8 @@ void color_object_detector_init(void)
 #ifdef COLOR_OBJECT_DETECTOR_DRAW2
   cod_draw2 = COLOR_OBJECT_DETECTOR_DRAW2;
 #endif
-
+  // specify function that is always called when a new frame is received from the camera: first argument is camera, second is the function that is called, third is framerate
+  // object detector 2 deals with green in order to detect floor and cyberzoo borders
   cv_add_to_device(&COLOR_OBJECT_DETECTOR_CAMERA2, object_detector2, COLOR_OBJECT_DETECTOR_FPS2);
 #endif
 }
@@ -214,7 +216,7 @@ uint32_t find_object_centroid(struct image_t *img, int32_t* p_xc, int32_t* p_yc,
   uint32_t cnt = 0;
   uint32_t tot_x = 0;
   uint32_t tot_y = 0;
-  uint8_t *buffer = img->buf;
+  uint8_t *buffer = img->buf; // find more information about ->buf, ->h and ->w by holding mouse over image_t in function header
 
   // Go through all the pixels
   for (uint16_t y = 0; y < img->h; y++) {
@@ -236,8 +238,8 @@ uint32_t find_object_centroid(struct image_t *img, int32_t* p_xc, int32_t* p_yc,
       }
       if ( (*yp >= lum_min) && (*yp <= lum_max) &&
            (*up >= cb_min ) && (*up <= cb_max ) &&
-           (*vp >= cr_min ) && (*vp <= cr_max )) {
-        cnt ++;
+           (*vp >= cr_min ) && (*vp <= cr_max )) { // check if pixel color fulfills filter definition
+        cnt ++; // increase counter variable by 1
         tot_x += x;
         tot_y += y;
         if (draw){
@@ -246,29 +248,29 @@ uint32_t find_object_centroid(struct image_t *img, int32_t* p_xc, int32_t* p_yc,
       }
     }
   }
-  if (cnt > 0) {
+  if (cnt > 0) { // if color was detected (cnt>0), calculate and store centroid coordinates
     *p_xc = (int32_t)roundf(tot_x / ((float) cnt) - img->w * 0.5f);
     *p_yc = (int32_t)roundf(img->h * 0.5f - tot_y / ((float) cnt));
   } else {
     *p_xc = 0;
     *p_yc = 0;
   }
-  return cnt;
+  return cnt; // return amount of detected pixels with specified color
 }
 
 void color_object_detector_periodic(void)
 {
-  static struct color_object_t local_filters[2];
-  pthread_mutex_lock(&mutex);
-  memcpy(local_filters, global_filters, 2*sizeof(struct color_object_t));
-  pthread_mutex_unlock(&mutex);
+  static struct color_object_t local_filters[2]; //local filter 0 for orange, 1 for green (length is 2)
+  pthread_mutex_lock(&mutex); // lock threads so they can't access same variables at the same time
+  memcpy(local_filters, global_filters, 2*sizeof(struct color_object_t)); // copy data from global filters to local filters
+  pthread_mutex_unlock(&mutex); // release thread lock
 
-  if(local_filters[0].updated){
+  if(local_filters[0].updated){ // check whether something changed
     AbiSendMsgVISUAL_DETECTION(COLOR_OBJECT_DETECTION1_ID, local_filters[0].x_c, local_filters[0].y_c,
-        0, 0, local_filters[0].color_count, 0);
-    local_filters[0].updated = false;
+        0, 0, local_filters[0].color_count, 0); // send frame information to orange avoider module, incl. centroid and color_count
+    local_filters[0].updated = false; // store that latest changes are transmitted to orange avoider module
   }
-  if(local_filters[1].updated){
+  if(local_filters[1].updated){ // same procedure for green filter
     AbiSendMsgVISUAL_DETECTION(COLOR_OBJECT_DETECTION2_ID, local_filters[1].x_c, local_filters[1].y_c,
         0, 0, local_filters[1].color_count, 1);
     local_filters[1].updated = false;
