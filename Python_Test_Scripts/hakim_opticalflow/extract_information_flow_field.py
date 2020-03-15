@@ -17,8 +17,9 @@ import re
 import time
 import sys
 import pandas as pd
+import PIL
 
-def determine_optical_flow(x,prev_bgr, bgr, graphics= True):
+def determine_optical_flow(width, x,prev_bgr, bgr, graphics= True):
     
     # *******************************************************************
     # TODO: In the !second! lecture on optical flow, study this function
@@ -35,21 +36,112 @@ def determine_optical_flow(x,prev_bgr, bgr, graphics= True):
                            qualityLevel = 0.3,
                            minDistance = 7,
                            blockSize = 7 )
+   
+    """
+    #canny edge
+   # prev_grey.convertTo(prev_gray, CV_32F)
+    edges = cv2.Canny(prev_gray, 100, 255)
+    indices = np.where(edges != [0])
+    coordinates = zip(indices[0], indices[1])
+    coordinates=set(coordinates);
+    coordinates=np.array(list(coordinates))
+   
+    #coordinates=np.float32;
+    points_old = coordinates;
+    points_old=np.array(points_old,dtype=float);
+    points_old = points_old.astype('float32') ;
+    #points_old = np.float32(points_old)
+    points_old= np.ndarray.copy(points_old, order='C');
+
+
     
-    # Parameters for lucas kanade optical flow
-    lk_params = dict( winSize  = (15,15),
+    """
+    ""
+    #Blob
+    from math import sqrt
+    from skimage import data
+    from skimage.feature import blob_dog, blob_log, blob_doh
+    from skimage.color import rgb2gray
+    
+    blobs_dog = blob_dog(prev_gray, max_sigma=30, threshold=.1)
+    blobs_dog[:, 2] = blobs_dog[:, 2] * sqrt(2)
+
+
+    blobs_doh = blob_doh(gray, max_sigma=30, threshold=.01)
+
+    blobs_list = [blobs_dog]
+    colors = ['yellow', 'lime', 'red']
+    titles = [ 'Difference of Gaussian']
+ #         'Determinant of Hessian']
+    sequence = zip(blobs_list, colors, titles)
+
+  #  fig, axes = plt.subplots(1, 3, figsize=(9, 3), sharex=True, sharey=True)
+#    ax = axes.ravel()
+    cc=0;
+    #pp=np.ones((len(blobs),2))  
+
+    for idx, (blobs, colour, title) in enumerate(sequence):
+        pp=np.ones((len(blobs),2))     
+    #    ax[idx].set_title(title)
+    #    ax[idx].imshow(image)
+        for blob in blobs:
+            y, x, r = blob
+            pp[cc,1]=y;
+            pp[cc,0]=x;
+        #    c = plt.Circle((x, y), r, colour=colour, linewidth=2, fill=False)
+      #      ax[idx].add_patch(c)
+            cc=cc+1;
+   #     ax[idx].set_axis_off()
+    
+    points_old=pp;
+    points_old = points_old.astype('float32') ;
+    
+    
+    """
+    #orb
+    from matplotlib import pyplot as plt
+    
+    img2 = prev_bgr;
+    
+    orb = cv2.ORB_create(edgeThreshold=5, patchSize=30, nlevels=8, fastThreshold=8, scaleFactor=1.2, WTA_K=1,scoreType=cv2.ORB_HARRIS_SCORE, firstLevel=0, nfeatures=5000)
+    kp2 = orb.detect(img2)
+    img2_kp = cv2.drawKeypoints(img2, kp2, None, color=(0,255,0), \
+            flags=cv2.DrawMatchesFlags_DEFAULT)
+    
+    #plt.figure()
+    #plt.imshow(img2_kp)
+    #plt.show()
+    
+    pp=np.ones((len(kp2),2));
+    
+    for i,keypoint in enumerate(kp2):
+        pp[i,0]=keypoint.pt[0];
+        pp[i,1]=keypoint.pt[1];
+    points_old=pp;
+    points_old = points_old.astype('float32') ;
+  #  print (keypoint.pt)
+        
+    
+    """
+    
+  #  fig, axes = plt.subplots(1, 3, figsize=(9, 3), sharex=True, sharey=True)
+    
+        
+    #Parameters for lucas kanade optical flow
+    lk_params = dict( winSize  = (15, 15),
                       maxLevel = 2,
                       criteria = (cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT, 10, 0.03))
     
     # detect features:
-    points_old = cv2.goodFeaturesToTrack(prev_gray, mask = None, **feature_params);
+    
+    #points_old = cv2.goodFeaturesToTrack(prev_gray, mask = None, **feature_params);
     
     # calculate optical flow
     points_new, status, error_match = cv2.calcOpticalFlowPyrLK(prev_gray, gray, points_old, None, **lk_params)
-    
+    #points_new=points_old;
     # filter the points by their status:
-    points_old = points_old[status == 1];
-    points_new = points_new[status == 1];
+    #points_old = points_old[status == 1];
+    #points_new = points_new[status == 1];
     
     flow_vectors = points_new - points_old;
     
@@ -62,13 +154,15 @@ def determine_optical_flow(x,prev_bgr, bgr, graphics= True):
         wl=0;
         w = np.ones((n_points,1))  
         #width=128;       
-        width=320
+     
         for p in range(n_points):
             cv2.arrowedLine(im, tuple(points_old[p, :]), tuple(points_new[p,:]), color);
            
             
             w[p,0]= (points_new[p,1]-points_old[p,1])**2+(points_new[p,0]-points_old[p,0])**2;
-            
+            if w[p,0]<width/10 :
+                w[p,0]=0;
+                
             if points_old[p,0] > width:
                wr=w[p,0]+wr;
             else:
@@ -106,6 +200,9 @@ def determine_optical_flow(x,prev_bgr, bgr, graphics= True):
     plt.title(' C=%i ' %c )
     plt.legend
     plt.show()
+    plt.tight_layout()
+    plt.show()
+   # fig, axes = plt.subplots(1, 3, figsize=(9, 3), sharex=True, sharey=True)
     return points_old, points_new, flow_vectors,c,d ;
     
        
@@ -208,20 +305,40 @@ def compare_file_names(name1, name2):
 def show_flow(x,image_nr_1, image_nr_2, image_dir_name = './image_sequence_pure_ver1/', image_prefix='image_', image_type = 'jpg'):
     image_name_1 = image_dir_name + image_prefix + str(image_nr_1) + '.' + image_type;
     prev_bgr = cv2.imread(image_name_1);
+    prev_bgr = cv2.rotate(prev_bgr, cv2.ROTATE_90_COUNTERCLOCKWISE)
     
+    scale_percent=100;
+    wid1 = int(prev_bgr.shape[1] * scale_percent / 100)
+    height1 = int(prev_bgr.shape[0] * scale_percent / 100)
+    dim1 = (wid1, height1)
+    prev_bgr = cv2.resize(prev_bgr, dim1, interpolation = cv2.INTER_AREA)
    # plt.figure();
    # plt.imshow(prev_bgr);
    #plt.title('First image, nr' + str(image_nr_1));
     
     image_name_2 = image_dir_name + image_prefix + str(image_nr_2) + '.' + image_type;
+    
     bgr = cv2.imread(image_name_2);
+    bgr = cv2.rotate(bgr, cv2.ROTATE_90_COUNTERCLOCKWISE)
+    
+    wid = int(bgr.shape[1] * scale_percent / 100)
+    height = int(bgr.shape[0] * scale_percent / 100)
+    dim = (wid, height)
+    bgr = cv2.resize(bgr, dim, interpolation = cv2.INTER_AREA)
+
+    
+    
+    
+    
+    width = (bgr.shape[1])/2;
+    
     
    #plt.figure();
    #plt.imshow(bgr);
    # plt.title('Second image, nr' + str(image_nr_2));
     
     # print('name1: {}\nname2: {}'.format(image_name_1, image_name_2));
-    points_old, points_new, flow_vectors,c, d= determine_optical_flow(x,prev_bgr, bgr, graphics=True);
+    points_old, points_new, flow_vectors,c, d= determine_optical_flow(width,x,prev_bgr, bgr, graphics=True);
     return points_old, points_new, flow_vectors, c,d;
     
 
