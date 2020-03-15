@@ -39,10 +39,12 @@ color = (255, 255, 255)
 # Line thickness of 2 px 
 thickness = 1
 
-for num in range(428):
-    filename = 'Frame_Series/frame_'+str(num+1)+'.jpg'
+for num in range(100):
+    directory = 'Mav_created_images/'
+    filename = directory+'frame_'+str(num+1)+'.jpg'
+    #filename = directory+'frame_'+str(216)+'.jpg'
     img_front = cv2.imread(filename)
-    plt.imshow(img_front)
+    #plt.imshow(img_front)
     
     #img_front = img_front[0:520, 0:100]
     img_front_blur = cv2.blur(img_front,(5,5))
@@ -54,7 +56,7 @@ for num in range(428):
     #hsv_green = cv2.cvtColor(green,cv2.COLOR_BGR2HSV)
     #print(hsv_green)
     
-    lower_green = np.array([17,0,0])
+    lower_green = np.array([15,0,0])
     upper_green = np.array([40,255,200])
     
     mask = cv2.inRange(img_front_hsv, lower_green, upper_green)
@@ -129,20 +131,25 @@ for num in range(428):
     print('cog_green:', cog_green)
     print('image center:', len(edges)/2)'''
     
-    if ratio_green > green_threshold:
+    if ratio_green == 0:
+        #print('no floor detected, turn around')
+        img_front = cv2.putText(img_front_scaled, 'no floor detected', org, font, fontScale, color, thickness, cv2.LINE_AA)
+    elif green_column_max_index <= len(edges)/2:
+        img_front = cv2.putText(img_front_scaled, 'turn left', org, font, fontScale, color, thickness, cv2.LINE_AA)
+    elif green_column_min_index > len(edges)/2:
+        img_front = cv2.putText(img_front_scaled, 'turn right', org, font, fontScale, color, thickness, cv2.LINE_AA) 
+    elif ratio_green > green_threshold:
         #print('no close obstacle')
         img_front = cv2.putText(img_front_scaled, 'no close obstacle', org, font, fontScale, color, thickness, cv2.LINE_AA) 
-    elif ratio_green == 0:
-        #print('no floor detected, turn around')
-        img_front = cv2.putText(img_front_scaled, 'no floor detected', org, font, fontScale, color, thickness, cv2.LINE_AA) 
-    else:
         #print('close obstacle')# perhaps check cog of green and obstacles to increase confidence
-        if cog_obst >= len(edges)/2:
-            #print('turn left')
-            img_front = cv2.putText(img_front_scaled, 'turn left', org, font, fontScale, color, thickness, cv2.LINE_AA) 
-        else:
-            #print('turn right')
-            img_front = cv2.putText(img_front_scaled, 'turn right', org, font, fontScale, color, thickness, cv2.LINE_AA) 
+    elif cog_obst >= len(edges)/2:
+        #print('turn left')
+        img_front = cv2.putText(img_front_scaled, 'turn left', org, font, fontScale, color, thickness, cv2.LINE_AA) 
+    elif cog_obst < len(edges)/2:
+        #print('turn right')
+        img_front = cv2.putText(img_front_scaled, 'turn right', org, font, fontScale, color, thickness, cv2.LINE_AA) 
+    else:
+        img_front = cv2.putText(img_front_scaled, 'None', org, font, fontScale, color, thickness, cv2.LINE_AA) 
 
     #minLineLength = 10
     #maxLineGap = 1
@@ -187,9 +194,9 @@ for num in range(428):
     #cv2.imwrite('original_front.jpg',img_front_hsv)
     edges = cv2.cvtColor(edges, cv2.COLOR_GRAY2BGR) # convert canny image to bgr
     res = cv2.addWeighted(img_front_scaled,1.0,edges,1.0,0)
-    cv2.imwrite('Frame_Series/out_frame'+str(num+1)+'.jpg',res)
+    cv2.imwrite(directory+'out_frame'+str(num+1)+'.jpg',res)
     
-    #plt.subplot(121),plt.imshow(img_front,cmap = 'gray')
-    #plt.title('Original Image'), plt.xticks([]), plt.yticks([])
-    #plt.subplot(122),plt.imshow(edges,cmap = 'gray')
-    #plt.title('Edge Image'), plt.xticks([]), plt.yticks([])
+    '''plt.subplot(121),plt.imshow(img_front,cmap = 'gray')
+    plt.title('Original Image'), plt.xticks([]), plt.yticks([])
+    plt.subplot(122),plt.imshow(edges,cmap = 'gray')
+    plt.title('Edge Image'), plt.xticks([]), plt.yticks([])'''

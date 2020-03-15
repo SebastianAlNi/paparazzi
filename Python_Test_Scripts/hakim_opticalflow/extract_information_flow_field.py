@@ -16,8 +16,12 @@ import matplotlib.pyplot as plt
 import re
 import time
 import sys
+<<<<<<< HEAD
 import pandas as pd
 import PIL
+=======
+#import pandas as pd
+>>>>>>> 9ddf2fab06e9fae4b38cbc2b0fa4c6976e7d671b
 
 def determine_optical_flow(width, x,prev_bgr, bgr, graphics= True):
     
