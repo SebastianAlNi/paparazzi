@@ -1,0 +1,61 @@
+----------In Paparazzi----------
+A/C:		bebop_orange_avoider_guided
+Airframe:	~/paparazzi/conf/airframes/tudelft/bebop_course2019_mavguys.xml
+Flight plan:	~/paparazzi/conf/flight_plans/tudelft/course2019_orangeavoid_cyberzoo_guided.xml
+Settings:	rotorcraft_basic.xml
+Radio:		radios/dummy.xml
+Telemetry:	telemetry/default_rotorcraft.xml
+
+----------Airframe File----------
+Includes all modules. If modules are added or renamed, update it here
+
+
+----------Navigation Module----------
+Based on	~/paparazzi/conf/modules/orange_avoider_guided.xml
+
+.xml file:	~/paparazzi/conf/modules/mavguys_navigation.xml
+.c file:	~/paparazzi/sw/airborne/modules/mavguys_navigation/mavguys_navigation.c
+.h file:	~/paparazzi/sw/airborne/modules/mavguys_navigation/mavguys_navigation.h
+
+Input:		status variable (int): 0 = no obstacle, 1 = turn left, 2 = turn right
+Process:	Receive status updates and determine confidence level, speed, rotation rate
+Output:		Heading and speed commands
+-------------------------------------
+
+----------Optical Flow Module----------
+Based on	~/paparazzi/conf/modules/cv_colorfilter.xml and ~/cv_opencvdemo.xml
+
+.xml file:	~/paparazzi/conf/modules/cv_mavguys_optical_flow.xml
+
+---C---
+.c file:	~/paparazzi/sw/airborne/modules/computer_vision/cv_mavguys_optical_flow.c
+.h file:	~/paparazzi/sw/airborne/modules/computer_vision/cv_mavguys_optical_flow.h
+
+Functions:	mavguys_optical_flow_init()	is called once in the beginning, defined camera and function that is called whenever a new frame is received
+		determine_optical_flow()	is called whenever a new frame is received. Put image processing fuctions in C or call function in .cpp file		
+
+---C++---
+.cpp file: 	~/paparazzi/sw/airborne/modules/computer_vision/opencv_mavguys_optical_flow.cpp
+.h file		~/paparazzi/sw/airborne/modules/computer_vision/opencv_mavguys_optical_flow.h
+
+Functions:	opencv_optical_flow()		put all opencv image processing functions here
+---------------------------------------
+
+----------Optical Flow Module----------
+Based on	~/paparazzi/conf/modules/cv_colorfilter.xml and ~/cv_opencvdemo.xml
+
+.xml file:	~/paparazzi/conf/modules/opencv_detect_green_floor.xml
+
+---C---
+.c file:	~/paparazzi/sw/airborne/modules/computer_vision/cv_detect_green_floor.c
+.h file:	~/paparazzi/sw/airborne/modules/computer_vision/cv_detect_green_floor.h
+
+Functions:	colorfilter_init()		is called once in the beginning, defined camera and function that is called whenever a new frame is received
+		determine_green_func()		is called whenever a new frame is received. Calls opencv_find_green() function to process image in C++		
+
+---C++---
+.cpp file: 	~/paparazzi/sw/airborne/modules/computer_vision/opencv_detect_green_floor_functions.cpp
+.h file		~/paparazzi/sw/airborne/modules/computer_vision/opencv_detect_green_floor_functions.h
+
+Functions:	opencv_find_green()		Contains all opencv functions to detect green floor
+---------------------------------------

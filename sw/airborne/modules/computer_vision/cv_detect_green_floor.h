@@ -30,8 +30,15 @@
 #include "modules/computer_vision/cv.h"
 
 // Module functions
+//extern void colorfilter_init(void);
+//---------copied--------- from cv_opencvdemo.h
+#ifndef CV_OPENCVDEMO_H
+#define CV_OPENCVDEMO_H
+
 extern void colorfilter_init(void);
 
+#endif
+//---------------------------
 extern uint8_t color_lum_min;
 extern uint8_t color_lum_max;
 

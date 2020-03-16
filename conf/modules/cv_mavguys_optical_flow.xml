@@ -1,0 +1,74 @@
+<!DOCTYPE module SYSTEM "module.dtd">
+
+<module name="cv_mavguys_optical_flow" dir="computer_vision">
+  <doc>
+    <description>OpticalFlow</description>
+    <define name="COLORFILTER_CAMERA" value="front_camera|bottom_camera" description="Video device to use"/>
+    <define name="COLORFILTER_FPS" value="0" description="The (maximum) frequency to run the calculations at. If zero, it will max out at the camera frame rate"/>
+  </doc>
+
+  <settings>
+    <!--<dl_settings>
+      <dl_settings NAME="ColorFilter">
+         <dl_setting var="color_lum_min" min="0" step="1" max="255" shortname="y_min" />
+         <dl_setting var="color_lum_max" min="0" step="1" max="255" shortname="y_max" />
+         <dl_setting var="color_cb_min"  min="0" step="1" max="255" shortname="u_min" />
+         <dl_setting var="color_cb_max"  min="0" step="1" max="255" shortname="u_max" />
+         <dl_setting var="color_cr_min"  min="0" step="1" max="255" shortname="v_min" />
+         <dl_setting var="color_cr_max"  min="0" step="1" max="255" shortname="v_max" />
+      </dl_settings>
+    </dl_settings>-->
+  </settings>
+
+  <depends>video_thread</depends>
+
+  <header>
+    <file name="cv_mavguys_optical_flow.h"/>
+  </header>
+
+  <!--<init fun="mavguys_optical_flow_init()"/>-->
+  <makefile target="ap">
+    <file name="cv_mavguys_optical_flow.c"/>
+    <file name="opencv_mavguys_optical_flow.cpp"/>
+    <file name="opencv_image_functions.cpp"/>
+    <flag name="CXXFLAGS" value="I$(PAPARAZZI_SRC)/sw/ext/opencv_bebop/install_arm/include"/>
+    
+	<flag name="LDFLAGS" value="L$(PAPARAZZI_HOME)/sw/ext/opencv_bebop/install_arm/lib" />
+	<flag name="LDFLAGS" value="lopencv_world" />
+	<flag name="LDFLAGS" value="L$(PAPARAZZI_HOME)/sw/ext/opencv_bebop/install_arm/share/OpenCV/3rdparty/lib" />
+	<flag name="LDFLAGS" value="llibprotobuf" />
+	<flag name="LDFLAGS" value="llibjpeg-turbo" />
+	<flag name="LDFLAGS" value="llibpng" />
+	<flag name="LDFLAGS" value="llibtiff" />
+	<flag name="LDFLAGS" value="lzlib" />
+	<flag name="LDFLAGS" value="ltegra_hal" />
+	<flag name="LDFLAGS" value="lquirc" />
+	<flag name="LDFLAGS" value="ldl" />
+	<flag name="LDFLAGS" value="lm" />
+	<flag name="LDFLAGS" value="lpthread" />
+	<flag name="LDFLAGS" value="lrt" />
+  </makefile>
+  <makefile target="nps">
+    <file name="cv_mavguys_optical_flow.c"/>
+    <file name="opencv_mavguys_optical_flow.cpp"/>
+    <file name="opencv_image_functions.cpp"/>
+    
+    <flag name="CXXFLAGS" value="I$(PAPARAZZI_SRC)/sw/ext/opencv_bebop/install_pc/include"/>
+    
+    <flag name="LDFLAGS" value="L$(PAPARAZZI_HOME)/sw/ext/opencv_bebop/install_pc/lib"/>
+    <flag name="LDFLAGS" value="lopencv_world"/>
+    <flag name="LDFLAGS" value="L$(PAPARAZZI_HOME)/sw/ext/opencv_bebop/install_pc/share/OpenCV/3rdparty/lib"/>
+    <flag name="LDFLAGS" value="llibprotobuf"/>
+    <flag name="LDFLAGS" value="lquirc"/>
+    <flag name="LDFLAGS" value="L/usr/lib/x86_64-linux-gnu"/>
+    <flag name="LDFLAGS" value="ljpeg"/>
+    <flag name="LDFLAGS" value="lpng"/>
+    <flag name="LDFLAGS" value="ltiff"/>
+    <flag name="LDFLAGS" value="lz"/>
+    <flag name="LDFLAGS" value="ldl"/>
+    <flag name="LDFLAGS" value="lm"/>
+    <flag name="LDFLAGS" value="lpthread"/>
+    <flag name="LDFLAGS" value="lrt"/>
+  </makefile>
+</module>
+

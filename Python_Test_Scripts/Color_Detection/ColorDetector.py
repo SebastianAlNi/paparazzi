@@ -39,32 +39,49 @@ color = (255, 255, 255)
 # Line thickness of 2 px 
 thickness = 1
 
-for num in range(100):
-    directory = 'Mav_created_images/'
+for num in range(1):
+    directory = 'Frame_Series_Mats/'
     filename = directory+'frame_'+str(num+1)+'.jpg'
     #filename = directory+'frame_'+str(216)+'.jpg'
     img_front = cv2.imread(filename)
     #plt.imshow(img_front)
     
-    #img_front = img_front[0:520, 0:100]
-    img_front_blur = cv2.blur(img_front,(5,5))
+    img_front = img_front[0:520, 0:150]
+    img_front_blur = cv2.blur(img_front,(15,15))
     img_front_scaled = rescale(img_front_blur, 50)
     # Convert BGR to HSV
-    img_front_hsv = cv2.cvtColor(img_front_scaled, cv2.COLOR_BGR2HSV)
+    # Use YUV instead!!
+    #img_front_hsv = cv2.cvtColor(img_front_scaled, cv2.COLOR_BGR2HSV)
+    img_front_YCrCb = cv2.cvtColor(img_front_scaled, cv2.COLOR_BGR2YCrCb)
     
     #green = np.uint8([[[0,255,0 ]]])
     #hsv_green = cv2.cvtColor(green,cv2.COLOR_BGR2HSV)
     #print(hsv_green)
     
-    lower_green = np.array([15,0,0])
-    upper_green = np.array([40,255,200])
+    #lower_green_hsv = np.array([15,0,0])
+    #upper_green_hsv = np.array([40,255,200])
+    lower_green_YCrCb = np.array([65,120,110])
+    upper_green_YCrCb = np.array([110,132,130])
     
-    mask = cv2.inRange(img_front_hsv, lower_green, upper_green)
-    edges = cv2.Canny(mask,100,200)
+    #mask = cv2.inRange(img_front_hsv, lower_green_hsv, upper_green_hsv)
+    mask = cv2.inRange(img_front_YCrCb, lower_green_YCrCb, upper_green_YCrCb)
+    #edges = cv2.Canny(mask,100,200)
+    edges = cv2.Canny(mask,600,1500)
+    
+    #vectors = cv2.findContours(edges, mode=cv2.RETR_LIST, method=cv2.CHAIN_APPROX_SIMPLE, offset=(0, 0))
+    #print(edges)
+    #print(vectors)
+    #plt.imshow(vectors,cmap = 'gray')
+    #edges = cv2.fastNlMeansDenoising(edges, edges, 50) #long computation
+    
+    #erosion_size = 5
+    #element = cv2.getStructuringElement(cv2.MORPH_RECT,(100,100))
+    #print(element)
+    #cv2.dilate(edges_init, edges, element);
     #print(edges[300])
     #print(len(edges))
     
-    green_threshold = 0.7
+    green_threshold = 0.8
     count_green_columns = 0
     green_column_min_index = 0
     green_column_max_index = 0
@@ -86,12 +103,14 @@ for num in range(100):
     #print(bool_green)
     
     for i in range(len(edges)):
-        if bool_green[i] == True:
+        if bool_green[i] == True:# and edges[i][0] == 1:
+        #if edges[i][0] == 1:
             green_column_min_index = i
             break
             
     for j in range(len(edges)-1, 0, -1):
-        if bool_green[j] == True:
+        if bool_green[j] == True:# and edges[i][0] == 1:
+        #if edges[j][0] == 1:
             green_column_max_index = j
             break
     

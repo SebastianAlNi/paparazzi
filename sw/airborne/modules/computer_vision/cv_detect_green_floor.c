@@ -25,9 +25,10 @@
 
 // Own header
 #include "modules/computer_vision/cv_detect_green_floor.h"
+#include "modules/computer_vision/cv.h"
 #include <stdio.h>
-
 #include "modules/computer_vision/lib/vision/image.h"
+#include "modules/computer_vision/opencv_detect_green_floor_functions.h"
 
 #ifndef COLORFILTER_FPS
 #define COLORFILTER_FPS 0       ///< Default FPS (zero means run at camera fps)
@@ -43,12 +44,12 @@ PRINT_CONFIG_VAR(COLORFILTER_SEND_OBSTACLE)
 struct video_listener *listener = NULL;
 
 // Filter Settings
-uint8_t color_lum_min = 105;
-uint8_t color_lum_max = 205;
-uint8_t color_cb_min  = 52;
-uint8_t color_cb_max  = 140;
-uint8_t color_cr_min  = 180;
-uint8_t color_cr_max  = 255;
+uint8_t color_lum_min = 65;
+uint8_t color_lum_max = 110;
+uint8_t color_cb_min  = 110;
+uint8_t color_cb_max  = 130;
+uint8_t color_cr_min  = 120;
+uint8_t color_cr_max  = 132;
 
 // Result
 //volatile int color_count = 0;
@@ -56,30 +57,38 @@ uint8_t color_cr_max  = 255;
 #include "subsystems/abi.h"
 
 // Function
-static struct image_t *colorfilter_func(struct image_t *img)
+static struct image_t *determine_green_func(struct image_t *img)
 {
-  // Filter
-  color_count = image_yuv422_colorfilt(img, img,
-                                       color_lum_min, color_lum_max,
-                                       color_cb_min, color_cb_max,
-                                       color_cr_min, color_cr_max
-                                      );
+	// Find green in C++
+	opencv_find_green((char *) img->buf, img->w, img->h,
+            color_lum_min, color_lum_max,
+            color_cb_min, color_cb_max,
+            color_cr_min, color_cr_max);
 
-  if (COLORFILTER_SEND_OBSTACLE) {
+	// Rescale
+	//image_yuv422_downsample(img, img, 2);
+
+	// Filter
+	/*color_count = image_yuv422_colorfilt(img, img,
+	                                       color_lum_min, color_lum_max,
+	                                       color_cb_min, color_cb_max,
+	                                       color_cr_min, color_cr_max);*/
+
+  /*if (COLORFILTER_SEND_OBSTACLE) {
     if (color_count > 20)
     {
-      AbiSendMsgOBSTACLE_DETECTION(OBS_DETECTION_COLOR_ID, 1.f, 0.f, 0.f);
+      AbiSendMsgOBSTACLE_DETECTION(OBS_DETECTION_COLOR_ID, 1.f, 0.f, 0.f); // name AbiSendMsgOBSTACLE_DETECTION may have to be changed
     }
     else
     {
       AbiSendMsgOBSTACLE_DETECTION(OBS_DETECTION_COLOR_ID, 10.f, 0.f, 0.f);
     }
-  }
+  }*/
 
   return img; // Colorfilter did not make a new image
 }
 
 void colorfilter_init(void)
 {
-  cv_add_to_device(&COLORFILTER_CAMERA, colorfilter_func, COLORFILTER_FPS);
+  cv_add_to_device(&COLORFILTER_CAMERA, determine_green_func, COLORFILTER_FPS);
 }
