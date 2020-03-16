@@ -1,0 +1,47 @@
+Global planning: (weeks # - #)
+- Form groups (week 1)
+- Instal paparazzi (week 1-2)
+- Try out provided orange module (week 2-3)
+- Devise strategy (week 2 - 4)
+- Prototype vision algorithms (scirpts/sim) (week 3 - 5)
+- Implement control algos in Paparazzi (sim/rael) (week 3 - 6)
+- Implement vision algos in Paparazzi (sim/real) (week 4 - 6)
+- Test iterate (week 5-7)
+- D-day at 26 march (make sure that we hand in github URL before 26 march)
+- Hand in report before 31 march
+
+
+
+Planning for next weeks:
+Vision prototyping is done
+Week 6:
+- Implement control algos in Paparazzi (sim/rael) (week 3 - 6) (Barry & Prawien)
+	- Not really started yet, but must simple be, if something then left or right for #-degrees 
+	- Reserve 1 ppl
+- Implement vision algos in Paparazzi (sim/real) (week 4 - 6) (Jean-luc, Hakim, Sebastiaan)
+	- Very hard part of coding all the vision stuff into C
+		- Divide the vision code is small parts and convert that to C via google
+	- Make a flow chart of the interaction between the c-files for Paparazzi (Sebastiaan)
+	-
+	- reserve 4 ppl
+- ROC-curve programming in Python to determine quality of each code (t.b.d.)
+	- Could be a good way to determine which vision code to choose with varying parameters
+	- Is also of value for the report
+	- on planning?
+	- assigned to ??
+- Find out the whole effect of optitrack (Barry & Prawien)
+- Understand the 'timer' (Luc)
+- Confidence determination (t.b.d.)
+
+Week 7:
+- Testing all codes and developing a working principle
+- Implementing results from ROC-curve
+- 
+
+
+
+For control part:
+use the abibind sending part from one c file to another, then it is not global and cannot be deleted somewhere else.
+use 0, 1, 2 for safe, right, left
+
+
