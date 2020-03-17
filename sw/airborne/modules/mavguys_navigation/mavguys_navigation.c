@@ -68,7 +68,7 @@ float avoidance_heading_direction = 0;  // heading change direction for avoidanc
 int16_t obstacle_free_confidence = 0;   // a measure of how certain we are that the way ahead if safe.
 
 const int16_t max_trajectory_confidence = 5;  // number of consecutive negative object detections to be sure we are obstacle free
-
+/*
 // This call back will be used to receive the color count from the orange detector
 #ifndef FLOOR_COLOR_DETECTOR_VISUAL_DETECTION_ID
 #error This module requires two color filters, as such you have to define FLOOR_COLOR_DETECTOR_VISUAL_DETECTION_ID to the orange filter
@@ -82,6 +82,9 @@ static void color_detection_cb(uint8_t __attribute__((unused)) sender_id,
 {
   color_count = quality;
 }
+*/
+int16_t leftorright = 0; //the value from 0,1,2 for safe, right and left from vision code
+
 
 #ifndef FLOOR_VISUAL_DETECTION_ID
 #error This module requires two color filters, as such you have to define FLOOR_VISUAL_DETECTION_ID to the orange filter
@@ -107,7 +110,7 @@ void mavguys_navigation_init(void)
   chooseRandomIncrementAvoidance();
 
   // bind our colorfilter callbacks to receive the color filter outputs
-  AbiBindMsgVISUAL_DETECTION(FLOOR_COLOR_DETECTOR_VISUAL_DETECTION_ID, &color_detection_ev, color_detection_cb);
+  //AbiBindMsgVISUAL_DETECTION(FLOOR_COLOR_DETECTOR_VISUAL_DETECTION_ID, &color_detection_ev, color_detection_cb);
   AbiBindMsgVISUAL_DETECTION(FLOOR_VISUAL_DETECTION_ID, &floor_detection_ev, floor_detection_cb);
 }
 
@@ -128,12 +131,12 @@ void mavguys_navigation_periodic(void)
   int32_t floor_count_threshold = oag_floor_count_frac * front_camera.output_size.w * front_camera.output_size.h;
   float floor_centroid_frac = floor_centroid / (float)front_camera.output_size.h / 2.f;
 
-  VERBOSE_PRINT("Barry ******************************Color_count: %d  threshold: %d state: %d \n", color_count, color_count_threshold, navigation_state);
-  VERBOSE_PRINT("Barry ******************************Floor count: %d, threshold: %d\n", floor_count, floor_count_threshold);
-  VERBOSE_PRINT("Barry ******************************Floor centroid: %f\n", floor_centroid_frac);
+  VERBOSE_PRINT("Color_count: %d  threshold: %d state: %d \n", color_count, color_count_threshold, navigation_state);
+  VERBOSE_PRINT("Floor count: %d, threshold: %d\n", floor_count, floor_count_threshold);
+  VERBOSE_PRINT("Floor centroid: %f\n", floor_centroid_frac);
 
   // update our safe confidence using color threshold
-  if(color_count < color_count_threshold){
+  if(leftorright = 0){
     obstacle_free_confidence++;
   } else {
     obstacle_free_confidence -= 2;  // be more cautious with positive obstacle detections
@@ -142,10 +145,12 @@ void mavguys_navigation_periodic(void)
   // bound obstacle_free_confidence
   Bound(obstacle_free_confidence, 0, max_trajectory_confidence);
 
-  float speed_sp = fminf(oag_max_speed, 0.2f * obstacle_free_confidence);
+  float speed_sp = fminf(oag_max_speed, 0.5f * obstacle_free_confidence); //was 0.2
 
   switch (navigation_state){
     case SAFE:
+      VERBOSE_PRINT("Safe %f\n", navigation_state);
+      VERBOSE_PRINT("SAFE: %d, obstacle_free_confidence: %d\n", navigation_state, obstacle_free_confidence);
       if (floor_count < floor_count_threshold || fabsf(floor_centroid_frac) > 0.12){
         navigation_state = OUT_OF_BOUNDS;
       } else if (obstacle_free_confidence == 0){
@@ -156,6 +161,8 @@ void mavguys_navigation_periodic(void)
 
       break;
     case OBSTACLE_FOUND:
+      VERBOSE_PRINT("Obstacle found %f\n", navigation_state);
+      VERBOSE_PRINT("Obstacle found: %d, obstacle_free_confidence: %d\n", navigation_state, obstacle_free_confidence);
       // stop
       guidance_h_set_guided_body_vel(0, 0);
 
@@ -166,6 +173,8 @@ void mavguys_navigation_periodic(void)
 
       break;
     case SEARCH_FOR_SAFE_HEADING:
+      VERBOSE_PRINT("Search for safe heading %f\n", navigation_state);
+      VERBOSE_PRINT("Search for safe heading: %d, obstacle_free_confidence: %d\n", navigation_state, obstacle_free_confidence);
       guidance_h_set_guided_heading_rate(avoidance_heading_direction * oag_heading_rate);
 
       // make sure we have a couple of good readings before declaring the way safe
@@ -175,6 +184,8 @@ void mavguys_navigation_periodic(void)
       }
       break;
     case OUT_OF_BOUNDS:
+      VERBOSE_PRINT("Out of bounds %f\n", navigation_state);
+      VERBOSE_PRINT("Out of bounds %d, obstacle_free_confidence: %d\n", navigation_state, obstacle_free_confidence);
       // stop
       guidance_h_set_guided_body_vel(0, 0);
 
@@ -185,6 +196,8 @@ void mavguys_navigation_periodic(void)
 
       break;
     case REENTER_ARENA:
+      VERBOSE_PRINT("ARE YOU NOT ENTERTAINED? %f\n", navigation_state);
+      VERBOSE_PRINT("ARE YOU NOT ENTERTAINED?  %d, obstacle_free_confidence: %d\n", navigation_state, obstacle_free_confidence);
       // force floor center to opposite side of turn to head back into arena
       if (floor_count >= floor_count_threshold && avoidance_heading_direction * floor_centroid_frac >= 0.f){
         // return to heading mode
@@ -209,6 +222,16 @@ void mavguys_navigation_periodic(void)
 uint8_t chooseRandomIncrementAvoidance(void)
 {
   // Randomly choose CW or CCW avoiding direction
+  if (leftorright = 1) {
+    avoidance_heading_direction = 1.f;
+    VERBOSE_PRINT("Set avoidance increment to left %f\n", avoidance_heading_direction * oag_heading_rate);
+    else if(leftorright = 2) {
+    avoidance_heading_direction = -1.f;
+    VERBOSE_PRINT("Set avoidance increment to right %f\n", avoidance_heading_direction * oag_heading_rate);
+    }
+  }
+  //uit te commentarieren
+  /*
   if (rand() % 2 == 0) {
     avoidance_heading_direction = 1.f;
     VERBOSE_PRINT("Set avoidance increment to: %f\n", avoidance_heading_direction * oag_heading_rate);
@@ -216,5 +239,6 @@ uint8_t chooseRandomIncrementAvoidance(void)
     avoidance_heading_direction = -1.f;
     VERBOSE_PRINT("Set avoidance increment to: %f\n", avoidance_heading_direction * oag_heading_rate);
   }
+  */
   return false;
 }
