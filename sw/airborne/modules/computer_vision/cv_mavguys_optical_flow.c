@@ -30,10 +30,10 @@
 #include "modules/computer_vision/lib/vision/image.h"
 #include "modules/computer_vision/opencv_mavguys_optical_flow.h"
 
-#ifndef COLORFILTER_FPS
+#ifndef COLORFILTER_FPS  // If statement to see if defined or not, if not, it runs the lines between the if statement. 
 #define COLORFILTER_FPS 0       ///< Default FPS (zero means run at camera fps)
 #endif
-PRINT_CONFIG_VAR(COLORFILTER_FPS)
+PRINT_CONFIG_VAR(COLORFILTER_FPS) // saves this value I think?
 
 
 #ifndef COLORFILTER_SEND_OBSTACLE
@@ -56,14 +56,13 @@ uint8_t color_cr_max  = 132;*/
 
 #include "subsystems/abi.h"
 
-// Function
-static struct image_t *determine_optical_flow(struct image_t *img)
+// Function, 
+static struct image_t *determine_optical_flow(struct image_t *img) //struture, image_t is data type pointer (*) to the funtion determine optical flow, input: img.
 {
-	// Find green in C++
-	opencv_optical_flow((char *) img->buf, img->w, img->h,
-            color_lum_min, color_lum_max,
-            color_cb_min, color_cb_max,
-            color_cr_min, color_cr_max);
+	// Find object in C++
+	int isObject;
+	isObject = opencv_optical_flow((char *) img->buf, img->w, img->h, 
+            ); //function in C++
 
 	// Rescale
 	//image_yuv422_downsample(img, img, 2);
@@ -85,7 +84,7 @@ static struct image_t *determine_optical_flow(struct image_t *img)
     }
   }*/
 
-  return img; // Colorfilter did not make a new image
+  return isObject; // Colorfilter did not make a new image NEW: we want to return 0, or 1 to show that there is an obstacle or not
 }
 
 void mavguys_optical_flow_init(void)
