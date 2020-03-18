@@ -30,20 +30,19 @@
 
 using namespace std;
 #include <opencv2/core/core.hpp>
+#include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
+#include <math.h> 
 using namespace cv;
 #include "opencv_image_functions.h"
 
 
 
-int opencv_optical_flow(char *img, int width, int height,
-		int color_lum_min, int color_lum_max,
-		int color_cb_min, int color_cb_max,
-		int color_cr_min, int color_cr_max)
+int opencv_optical_flow(char *img, int width, int height)
 {
   // Create a new image, using the original bebop image.
   Mat M(width, height, CV_8UC2, img); // original
-  Mat image;
+  Mat src, srcErode, dst;
 
   // Blur it
   blur(M, M, Size(15, 15));
@@ -51,55 +50,42 @@ int opencv_optical_flow(char *img, int width, int height,
   // Rescale
   resize(M, M, Size(), 0.5, 0.5, INTER_AREA);
 
-  // Convert UYVY in paparazzi to YUV in opencv
-  cvtColor(M, M, CV_YUV2RGB_Y422);
-  cvtColor(M, M, CV_RGB2YUV);
+  // Convert UYVY in paparazzi to grayscale in opencv
+  cvtColor(M, src, CV_YUV2GRAY_Y422);
 
-  // Mask filter
-  // Threshold all values within the indicted YUV values.
-  inRange(M, Scalar(color_lum_min, color_cb_min, color_cr_min),
-		  Scalar(color_lum_max, color_cb_max, color_cr_max), M);
+  //Erode
+    erode(src, srcErode, getStructuringElement(MORPH_RECT, Size(5, 5)),int iterations=11);
 
   // Canny Edge Detector
-  int edgeThresh = 500;
-  Canny(M, M, edgeThresh, edgeThresh * 3);
+  int edgeThresh = 30;
+  Canny(srcErode, dst, edgeThresh, edgeThresh * 2);
 
-  // Convert back to YUV422 and put it in place of the original image
-  colorbgr_opencv_to_yuv422(M, img, width, height);
+ // Propabilistic Hough Line Transfer
+  vector<Vec4i> linesP;
+  HoughLinesP(dst, linesP, 1, CV_PI/180, 150, 50, 10 );
 
-  // Create a new image, using the original bebop image.
-  //Mat image(height, width, CV_8UC2, img);
-  
-  // Convert color to YUV (is already)
-  //Mat image;
-  // cvtColor(M, image, CV_YUV2GRAY_Y422);
-  
-  // Rescale image
-  //Mat Image_scaled
-  //resize(image, image, Size(), 0.5, 0.5, INTER_AREA);
-  
-  // Filter
-  //lower_green_YCrCb = np.array([65,120,110])
-  //upper_green_YCrCb = np.array([110,132,130])
-  //inRange(img_front_YCrCb, lower_green_YCrCb, upper_green_YCrCb)
+ //Obstacle conditions
+   bool isObject = false;
+   int  obj    = 0;
 
-/*#if OPENCVDEMO_GRAYSCALE
-  //  Grayscale image example
-  cvtColor(M, image, CV_YUV2GRAY_Y422);
-  // Canny edges, only works with grayscale image
-  int edgeThresh = 35;
-  Canny(image, image, edgeThresh, edgeThresh * 3);
-  // Convert back to YUV422, and put it in place of the original image
-  grayscale_opencv_to_yuv422(image, img, width, height);
-#else // OPENCVDEMO_GRAYSCALE
-  // Color image example
-  // Convert the image to an OpenCV Mat
-  cvtColor(M, image, CV_YUV2BGR_Y422);
-  // Blur it, because we can
-  blur(image, image, Size(5, 5));
-  // Convert back to YUV422 and put it in place of the original image
-  colorbgr_opencv_to_yuv422(image, img, width, height);
-#endif // OPENCVDEMO_GRAYSCALE*/
+// Draw the lines
+    for( size_t i = 0; i < linesP.size(); i++ )
+    {
+        Vec4i l = linesP[i];
+	double x1, y1, x2, y2, X, Y, theta;
+        line( dst, Point(l[0], l[1]), Point(l[2], l[3]), Scalar(0,0,255), 3, LINE_AA);
+	x1 = l[0]; 
+	y1 = l[1];
+	x2 = l[2];
+	y2 = l[3];
+	X = abs(x2-x1);
+	Y = abs(y2-y1);
+	theta = atan2(Y,X);
+ 	if (theta < 0.26) {
+		isOobject = true;
+}	
+    }
 
-  return 0;
+
+  return isObject;
 }
