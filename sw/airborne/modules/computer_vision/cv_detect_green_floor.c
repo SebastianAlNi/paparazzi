@@ -29,6 +29,7 @@
 #include <stdio.h>
 #include "modules/computer_vision/lib/vision/image.h"
 #include "modules/computer_vision/opencv_detect_green_floor_functions.h"
+#include "modules/computer_vision/opencv_contour.h"
 
 #ifndef COLORFILTER_FPS
 #define COLORFILTER_FPS 0       ///< Default FPS (zero means run at camera fps)
@@ -43,13 +44,23 @@ PRINT_CONFIG_VAR(COLORFILTER_SEND_OBSTACLE)
 
 struct video_listener *listener = NULL;
 
-// Filter Settings
-uint8_t color_lum_min = 65;
+// Filter Settings real
+/*uint8_t color_lum_min = 65;
 uint8_t color_lum_max = 110;
 uint8_t color_cb_min  = 110;
 uint8_t color_cb_max  = 130;
 uint8_t color_cr_min  = 120;
-uint8_t color_cr_max  = 132;
+uint8_t color_cr_max  = 132;*/
+
+// Filter Settings simulation
+uint8_t color_lum_min = 0;
+uint8_t color_lum_max = 255;
+uint8_t color_cb_min  = 0;
+uint8_t color_cb_max  = 110;
+uint8_t color_cr_min  = 0;
+uint8_t color_cr_max  = 130;
+
+//int check = 0;
 
 // Result
 //volatile int color_count = 0;
@@ -59,11 +70,14 @@ uint8_t color_cr_max  = 132;
 // Function
 static struct image_t *determine_green_func(struct image_t *img)
 {
+	//printf("C++ function called.\n");
 	// Find green in C++
 	opencv_find_green((char *) img->buf, img->w, img->h,
             color_lum_min, color_lum_max,
             color_cb_min, color_cb_max,
             color_cr_min, color_cr_max);
+
+	//find_contour((char *) img->buf, img->w, img->h);
 
 	// Rescale
 	//image_yuv422_downsample(img, img, 2);

@@ -33,55 +33,183 @@ using namespace std;
 #include <opencv2/imgproc/imgproc.hpp>
 using namespace cv;
 #include "opencv_image_functions.h"
+#include <cstdio>
+#include <iostream>
 
-
+int check = 0;
 
 int opencv_find_green(char *img, int width, int height,
 		int color_lum_min, int color_lum_max,
 		int color_cb_min, int color_cb_max,
 		int color_cr_min, int color_cr_max)
 {
+  //printf("C++ function called here.\n");
   // Create a new image, using the original bebop image.
-  /*Mat M(width, height, CV_8UC2, img); // original
-  Mat image;
+  Mat M(width, height, CV_8UC2, img); // original
+  Mat thresh_image, edge_image, orig_image, dst;
+  
+  //orig_image = M;
 
-  // Blur it
-  blur(M, M, Size(15, 15));
+  // Blur it, blurs it really hard, maybe only necessary for real flight, not for simulation
+  //blur(M, M, Size(3, 3));
 
   // Rescale
-  resize(M, M, Size(), 0.5, 0.5, INTER_AREA);
+  //resize(M, M, Size(), 0.1, 0.1, INTER_AREA);
 
   // Convert UYVY in paparazzi to YUV in opencv
   cvtColor(M, M, CV_YUV2RGB_Y422);
   cvtColor(M, M, CV_RGB2YUV);
+  
+  //Mat res_image = M;
 
   // Mask filter
   // Threshold all values within the indicted YUV values.
   inRange(M, Scalar(color_lum_min, color_cb_min, color_cr_min),
-		  Scalar(color_lum_max, color_cb_max, color_cr_max), M);
+		  Scalar(color_lum_max, color_cb_max, color_cr_max), thresh_image);
+  
+  //Mat B(width, height, CV_8UC1, thresh_image);
+  //grayscale_opencv_to_yuv422(thresh_image, thresh_image, width, height);
+  
+  Scalar intensity = M.at<uchar>(0, 0);
+  printf("%d ", intensity.val[0]);
+  intensity = M.at<uchar>(1, 0);
+  printf("%d ", intensity.val[0]);
+  intensity = M.at<uchar>(2, 0);
+  printf("%d ", intensity.val[0]);
+  intensity = M.at<uchar>(3, 0);
+  printf("%d ", intensity.val[0]);
+  intensity = M.at<uchar>(4, 0);
+  printf("%d ", intensity.val[0]);
+  intensity = M.at<uchar>(5, 0);
+  printf("%d ", intensity.val[0]);
+  printf("\n");
+  
+  /*if(check == 0){
+	  for(int y = 0; y < height; y++){
+		  printf("%d ", intensity.val[0]);
+		  intensity = thresh_image.at<uchar>(y, 0);
+	  }
+  }
+  check++;*/
+  //Scalar intensity = thresh_image.at<uchar>(200, 200);
+  //printf("intensity.val[0]: %d\n", intensity.val[0]);
+  //printf(intensity.val[0]);
 
   // Canny Edge Detector
-  int edgeThresh = 500;
-  Canny(M, M, edgeThresh, edgeThresh * 3);
+  //int edgeThresh = 50;
+  //Canny(thresh_image, edge_image, edgeThresh, edgeThresh * 3);
+  edge_image = thresh_image;
+  
+  /*if(check == 0){
+	  printf("Size of thresh_image: %d\n", width);
+	  check++;
+  };*/
+  
+  //sizeof(thresh_image) = 96
+  //height = 520
+  //width = 240
+  
+  
+  
+  // Add edges to original image
+  /*dst = Scalar::all(0);
+  Mat addweight;
+  M.copyTo( dst, edge_image); // copy part of src image according the canny output, canny is used as mask
+  cvtColor(edge_image, edge_image, CV_GRAY2BGR); // convert canny image to bgr
+  addWeighted( M, 0.5, edge_image, 0.5, 0.0, addweight); // blend src image with canny image
+  M += edge_image; // add src image with canny image*/
+  
+  //coloryuv_opencv_to_yuv422(M, img, width, height);
+  //grayscale_opencv_to_yuv422(thresh_image, img, width, height);
+
+  
+  float green_threshold = 0.8;
+  int count_green_columns = 0;
+  int green_column_min_index = 0;
+  int green_column_max_index = 0;
+  
+  bool green[height] = {0};
+  int sum_green_true = 0;
+  int sum_green_false = 0;
+  
+  //printf("M green: %d\n", green);
+  //printf("thresh_image: %d\n", thresh_image.at<char>(0,100));
+  //printf("thresh_image: ");
+  //printf(thresh_image.at<char*>(0,100));
+  
+  // If one pixel per image column is green, store a 1 in the green array
+  for(int h = 0; h < height; h++){
+	  for(int w = 0; w < width; w++){
+		  if(thresh_image.at<int>(w,h) == '0'){
+			  green[h] = 1;
+			  break;
+		  }
+	  }
+  }
+  
+  //printf("thresh_image.rows: %d ", thresh_image.rows);
+  //printf("thresh_image.cols: %d ", thresh_image.cols);
+  
+  /*for(int col = 0; col < thresh_image.cols; ++col) {
+      unsigned char* p = thresh_image.ptr(col); //pointer p points to the first place of each row
+      for(int row = 0; row < thresh_image.rows; ++row) {
+    	  //printf("%d ", *p);
+    	  if(*p > 0){
+    		  green[col] = 1;
+    		  break;
+    	  }
+     	  *p++; // what about maximum *p?
+      }
+  }*/
+  
+  if(check == 0){
+	  for(int i = 0; i < height; i++){
+		  printf("%d ", green[i]);
+	  }
+	  check++;
+  }
+  
+  // Find left border of green floor
+  for(int i = 0; i < height; i++){
+	  if(green[i] == 1){
+		  green_column_min_index = i;
+		  break;
+	  }
+  }
+  
+  // Find right border of green floor
+  for(int j = height; j > 0; j--){
+	  if(green[j] == 1){
+		  green_column_max_index = j;
+		  break;
+	  }
+  }
+  
+  printf("M green_column_min_index: %d\n", green_column_min_index);
+  printf("M green_column_max_index: %d\n", green_column_max_index);
+  
+  /*for(int i = 0; i < height; i++){
+	  printf("%d ", green[i]);
+  }*/
+  
+  // Convert canny image to yuv
+  //cvtColor(edge_image, edge_image, CV_GRAY2RGB);
+  
+  // Add original image and canny edges
+  //addWeighted(M,1.0,thresh_image,1.0,0,M);
+  
+  // Put mask on original image
+  //bitwise_and(M, M, thresh_image);
 
   // Convert back to YUV422 and put it in place of the original image
-  colorbgr_opencv_to_yuv422(M, img, width, height);*/
+  //cvtColor(M, M, CV_GRAY2RGB);
+  //colorbgr_opencv_to_yuv422(M, img, width, height);
+  //grayscale_opencv_to_yuv422(edge_image, img, width, height);
+  
+  
 
   // Create a new image, using the original bebop image.
   //Mat image(height, width, CV_8UC2, img);
-  
-  // Convert color to YUV (is already)
-  //Mat image;
-  // cvtColor(M, image, CV_YUV2GRAY_Y422);
-  
-  // Rescale image
-  //Mat Image_scaled
-  //resize(image, image, Size(), 0.5, 0.5, INTER_AREA);
-  
-  // Filter
-  //lower_green_YCrCb = np.array([65,120,110])
-  //upper_green_YCrCb = np.array([110,132,130])
-  //inRange(img_front_YCrCb, lower_green_YCrCb, upper_green_YCrCb)
 
 /*#if OPENCVDEMO_GRAYSCALE
   //  Grayscale image example
