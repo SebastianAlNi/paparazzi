@@ -101,7 +101,7 @@
     </module>-->
     <module name="cv_detect_green_floor">
       <define name="COLORFILTER_CAMERA" value="front_camera"/>
-      <define name="COLORFILTER_FPS" value="0"/>
+      <define name="COLORFILTER_FPS" value="10"/>
       <define name="COLOR_OBJECT_DETECTOR_CAMERA2" value="front_camera"/>
       <define name="COLOR_OBJECT_DETECTOR_FPS2" value="0"/>
       <define name="COLOR_OBJECT_DETECTOR_DRAW2" value="1"/>

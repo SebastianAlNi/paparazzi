@@ -127,7 +127,7 @@ void mavguys_navigation_periodic(void)
     obstacle_free_confidence = 0;
     return;
   }
-
+  //
   // compute current color thresholds
   int32_t color_count_threshold = oag_color_count_frac * front_camera.output_size.w * front_camera.output_size.h;
   int32_t floor_count_threshold = oag_floor_count_frac * front_camera.output_size.w * front_camera.output_size.h;

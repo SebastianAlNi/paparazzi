@@ -24,7 +24,7 @@
  * around. The color detection is done by the cv_detect_color_object module, use the FLOOR_VISUAL_DETECTION_ID setting to
  * define which filter to use.
  */
-
+  //
 #ifndef FLOOR_COLOR_DETECTOR_H
 #define FLOOR_COLOR_DETECTOR_H
 
