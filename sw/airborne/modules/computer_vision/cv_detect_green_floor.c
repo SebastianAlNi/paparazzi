@@ -29,12 +29,12 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include "modules/computer_vision/lib/vision/image.h"
-#include "modules/computer_vision/opencv_detect_green_floor_functions.h"
+//#include "modules/computer_vision/opencv_detect_green_floor_functions.h"
 //#include "modules/computer_vision/opencv_contour.h"
 #include "subsystems/abi.h" // abi deals with messaging between modules
 
 #ifndef COLORFILTER_FPS
-#define COLORFILTER_FPS 0       ///< Default FPS (zero means run at camera fps)
+#define COLORFILTER_FPS 10       ///< Default FPS (zero means run at camera fps)
 #endif
 PRINT_CONFIG_VAR(COLORFILTER_FPS)
 
@@ -62,18 +62,11 @@ uint8_t color_cb_max  = 110;
 uint8_t color_cr_min  = 0;
 uint8_t color_cr_max  = 130;
 
-float green_threshold = 0.8;
-
-//int check = 0;
+float green_threshold = 0.85;
+float floor_count_frac = 0.05f;       // floor detection threshold as a fraction of total of image
 
 // Result
 //volatile int color_count = 0;
-
-// Function
-/*uint32_t find_object_centroid(struct image_t *img, int32_t* p_xc, int32_t* p_yc,
-                              uint8_t lum_min, uint8_t lum_max,
-                              uint8_t cb_min, uint8_t cb_max,
-                              uint8_t cr_min, uint8_t cr_max);*/
 
 /*
  * find_object_centroid
@@ -92,6 +85,7 @@ float green_threshold = 0.8;
  * @param cr_max - maximum cr value for the filter in YCbCr colorspace
  * @param draw - whether or not to draw on image
  * @return number of pixels of image within the filter bounds.
+ * Image height and width are switched!
  */
 uint32_t find_object_centroid(struct image_t *img, int32_t* p_xc, int32_t* p_yc,
                               uint8_t lum_min, uint8_t lum_max,
@@ -99,20 +93,33 @@ uint32_t find_object_centroid(struct image_t *img, int32_t* p_xc, int32_t* p_yc,
                               uint8_t cr_min, uint8_t cr_max)
 {
   uint32_t cnt = 0;
-  uint32_t command = 0;
+  uint8_t command = 0;
   uint32_t tot_x = 0;
   uint32_t tot_y = 0;
-  int green[img->h];
-  for(int i = 0; i < img->h; i++){
+
+  // Rescale
+  uint8_t scale_factor = 1; // only use powers of 2
+  uint16_t height = img->h / scale_factor;
+  uint16_t width = img->w / scale_factor;
+  width /= 2; //only consider bottom half of image
+  /*struct image_t *img_scaled;
+  image_create(img_scaled, img->w, img->h, IMAGE_YUV422);
+  image_copy(img, img_scaled);*/
+  //image_yuv422_downsample(img, img, scale_factor);
+
+  printf("height: %d\n", height); //520
+  printf("width: %d\n", width); //240
+
+  int green[height];
+  for(int i = 0; i < height; i++){
 	  green[i] = 0;
   }
-  //printf("height: %d\n", img->h); //520
-  //printf("width: %d\n", img->w); //240
+
   uint8_t *buffer = img->buf; // find more information about ->buf, ->h and ->w by holding mouse over image_t in function header
 
   // Go through all the pixels
-  for (uint16_t y = 0; y < img->h; y++) {
-    for (uint16_t x = 0; x < img->w; x ++) {
+  for (uint16_t y = 0; y < img->h; y+=scale_factor) {
+    for (uint16_t x = 0; x < img->w/2; x +=scale_factor) {
       // Check if the color is inside the specified values
       uint8_t *yp, *up, *vp;
       if (x % 2 == 0) {
@@ -134,7 +141,7 @@ uint32_t find_object_centroid(struct image_t *img, int32_t* p_xc, int32_t* p_yc,
         cnt ++; // increase counter variable by 1
         tot_x += x;
         tot_y += y;
-        green[y] = 1;
+        green[y/scale_factor] = 1;
         //if (draw){
         //  *yp = 255;  // make pixel brighter in image
         //}
@@ -143,12 +150,13 @@ uint32_t find_object_centroid(struct image_t *img, int32_t* p_xc, int32_t* p_yc,
   }
 
   //float green_threshold = 0.8;
+  uint32_t floor_count_threshold = floor_count_frac * width * height/2;
   int count_green_columns = 0;
   int green_column_min_index = 0;
   int green_column_max_index = 0;
 
   // Find left border of green floor
-  for(int i = 0; i < img->h; i++){
+  for(int i = 0; i < height; i++){
 	  if(green[i] == 1){
 		  green_column_min_index = i;
 		  break;
@@ -156,7 +164,7 @@ uint32_t find_object_centroid(struct image_t *img, int32_t* p_xc, int32_t* p_yc,
   }
 
   // Find right border of green floor
-  for(int j = img->h; j > 0; j--){
+  for(int j = height; j > 0; j--){
 	  if(green[j] == 1){
 		  green_column_max_index = j;
 		  break;
@@ -172,10 +180,10 @@ uint32_t find_object_centroid(struct image_t *img, int32_t* p_xc, int32_t* p_yc,
   for(int k = green_column_min_index; k < green_column_max_index+1; k++){
       if(green[k] == 1){
           count_green_columns++;
-          sum_indices_green++;
+          sum_indices_green += k;
       }
       else{
-          sum_indices_obst++;
+          sum_indices_obst += k;
       }
   }
 
@@ -183,9 +191,6 @@ uint32_t find_object_centroid(struct image_t *img, int32_t* p_xc, int32_t* p_yc,
   float ratio_green;
   if(green_length != 0){
 	  ratio_green = (float)count_green_columns / (float)green_length;
-	  printf("count_green_columns: %d\n", count_green_columns);
-	  printf("green_length: %d\n", green_length);
-	  printf("ratio_green: %.2f\n", ratio_green);
   }
   else{
 	  ratio_green = 0;
@@ -193,11 +198,11 @@ uint32_t find_object_centroid(struct image_t *img, int32_t* p_xc, int32_t* p_yc,
 
   int count_obstacle_pixels = green_length - count_green_columns;
   float cog_obst;
-  if(count_obstacle_pixels != 0){
+  if(count_obstacle_pixels > 0){
 	  cog_obst = (float)sum_indices_obst / (float)count_obstacle_pixels;
   }
   else{
-	  cog_obst = 0;
+	  cog_obst = height/2;
   }
 
   /*int cog_green;
@@ -208,37 +213,47 @@ uint32_t find_object_centroid(struct image_t *img, int32_t* p_xc, int32_t* p_yc,
 	  cog_green = 0;
   }*/
 
-  if(ratio_green == 0){
-	  command = -1; // no floor detected
+  //if(ratio_green == 0){
+  if(green_column_max_index <= height/3*2){
+	  command = 2; // turn left
+	  printf("Case: 1\n");
   }
-  else if(green_column_max_index <= img->h/2){
-	  command = 1; // turn left
+  else if(green_column_min_index >= height/3){
+	  command = 1; // turn right
+	  printf("Case: 2\n");
   }
-  else if(green_column_min_index > img->h/2){
-	  command = 2; // turn right
-  }
+  //else if(cnt < floor_count_threshold){
+  //	  command = 3; // out of bounds, little or no floor detected, no direction could be given
+  //}
   else if(ratio_green > green_threshold){
 	  command = 0; // no obstacle found
+	  printf("Case: 3\n");
   }
-  else if(cog_obst >= img->h/2){
-	  command = 1; // turn left
+  else if(cog_obst >= height/2){
+	  command = 2; // turn left
+	  printf("Case: 4\n");
   }
-  else if(cog_obst < img->h/2){
-	  command = 2; // turn right
+  else if(cog_obst < height/2){
+	  command = 1; // turn right
+	  printf("Case: 5\n");
   }
   else{
 	  printf("Error: No matching command for current situation.\n");
   }
 
+  printf("count_green_columns: %d\n", count_green_columns);
+  printf("green_length: %d\n", green_length);
+  printf("ratio_green: %.2f\n", ratio_green);
+  printf("cog_obst: %.2f\n", cog_obst);
   printf("Command: %d\n", command);
 
-  if (cnt > 0) { // if color was detected (cnt>0), calculate and store centroid coordinates
+  /*if (cnt > 0) { // if color was detected (cnt>0), calculate and store centroid coordinates
     *p_xc = (int32_t)roundf(tot_x / ((float) cnt) - img->w * 0.5f);
     *p_yc = (int32_t)roundf(img->h * 0.5f - tot_y / ((float) cnt));
   } else {
     *p_xc = 0;
     *p_yc = 0;
-  }
+  }*/
   return command; // return amount of detected pixels with specified color
 }
 
