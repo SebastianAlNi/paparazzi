@@ -49,6 +49,7 @@ extern uint8_t color_cr_min;
 extern uint8_t color_cr_max;
 
 extern float green_threshold;
+extern float floor_count_frac;
 
 extern volatile int color_count;
 
