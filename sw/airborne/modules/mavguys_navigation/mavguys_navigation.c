@@ -98,7 +98,7 @@ static void floor_detection_cb(uint8_t __attribute__((unused)) sender_id,
                                int16_t __attribute__((unused)) pixel_width, int16_t __attribute__((unused)) pixel_height,
                                int32_t quality, int16_t __attribute__((unused)) extra)
 {
-  floor_count = quality;
+  leftorright = quality;
   floor_centroid = pixel_y;
 }
 
@@ -112,7 +112,7 @@ void mavguys_navigation_init(void)
   chooseRandomIncrementAvoidance();
 
   // bind our colorfilter callbacks to receive the color filter outputs
-  //AbiBindMsgVISUAL_DETECTION(FLOOR_COLOR_DETECTOR_VISUAL_DETECTION_ID, &color_detection_ev, color_detection_cb);
+  //AbiBindMsgVISUAL_DETECTION();//FLOOR_COLOR_DETECTOR_VISUAL_DETECTION_ID, &color_detection_ev, color_detection_cb);
   AbiBindMsgVISUAL_DETECTION(FLOOR_VISUAL_DETECTION_ID, &floor_detection_ev, floor_detection_cb);
 }
 
@@ -156,11 +156,13 @@ void mavguys_navigation_periodic(void)
     case SAFE:
       VERBOSE_PRINT("Safe %f\n", navigation_state);
       VERBOSE_PRINT("SAFE: %d, obstacle_free_confidence: %d\n", navigation_state, obstacle_free_confidence);
-      if (floor_count < floor_count_threshold || fabsf(floor_centroid_frac) > 0.12){
-        navigation_state = OUT_OF_BOUNDS;
-      } else if (obstacle_free_confidence == 0){
+      //if (floor_count < floor_count_threshold || fabsf(floor_centroid_frac) > 0.12){
+       // navigation_state = OUT_OF_BOUNDS;
+       
+      if (obstacle_free_confidence == 0){
         navigation_state = OBSTACLE_FOUND;
-      } else {
+      } 
+      else {
         guidance_h_set_guided_body_vel(speed_sp, 0);
       }
 
@@ -204,16 +206,16 @@ void mavguys_navigation_periodic(void)
       VERBOSE_PRINT("ARE YOU NOT ENTERTAINED? %f\n", navigation_state);
       VERBOSE_PRINT("ARE YOU NOT ENTERTAINED?  %d, obstacle_free_confidence: %d\n", navigation_state, obstacle_free_confidence);
       // force floor center to opposite side of turn to head back into arena
-      if (floor_count >= floor_count_threshold && avoidance_heading_direction * floor_centroid_frac >= 0.f){
+      //if (floor_count >= floor_count_threshold && avoidance_heading_direction * floor_centroid_frac >= 0.f){
         // return to heading mode
-        guidance_h_set_guided_heading(stateGetNedToBodyEulers_f()->psi);
+        //guidance_h_set_guided_heading(stateGetNedToBodyEulers_f()->psi);
 
         // reset safe counter
-        obstacle_free_confidence = 0;
+        //obstacle_free_confidence = 0;
 
         // ensure direction is safe before continuing
-        navigation_state = SAFE;
-      }
+        //navigation_state = SAFE;
+      
       break;
     default:
       break;
