@@ -16,7 +16,8 @@
          <dl_setting var="color_cb_max"  min="0" step="1" max="255" shortname="u_max" />
          <dl_setting var="color_cr_min"  min="0" step="1" max="255" shortname="v_min" />
          <dl_setting var="color_cr_max"  min="0" step="1" max="255" shortname="v_max" />
-         <dl_setting var="green_threshold"  min="0.0" step="0.01" max="1.0" shortname="green_threshold" />
+         <dl_setting var="green_threshold"  min="0.0" step="0.01" max="1.0" />
+         <dl_setting var="floor_count_frac" min="0" step="0.01" max="0.5"/>
       </dl_settings>
     </dl_settings>
   </settings>
@@ -30,7 +31,7 @@
   <init fun="colorfilter_init()"/>
   <makefile target="ap">
     <file name="cv_detect_green_floor.c"/>
-    <file name="opencv_detect_green_floor_functions.cpp"/>
+    <!--<file name="opencv_detect_green_floor_functions.cpp"/>
     <file name="opencv_image_functions.cpp"/>
     <flag name="CXXFLAGS" value="I$(PAPARAZZI_SRC)/sw/ext/opencv_bebop/install_arm/include"/>
     
@@ -47,11 +48,11 @@
 	<flag name="LDFLAGS" value="ldl" />
 	<flag name="LDFLAGS" value="lm" />
 	<flag name="LDFLAGS" value="lpthread" />
-	<flag name="LDFLAGS" value="lrt" />
+	<flag name="LDFLAGS" value="lrt" />-->
   </makefile>
   <makefile target="nps">
     <file name="cv_detect_green_floor.c"/>
-    <file name="opencv_detect_green_floor_functions.cpp"/>
+    <!--<file name="opencv_detect_green_floor_functions.cpp"/>
     <file name="opencv_image_functions.cpp"/>
     
     <flag name="CXXFLAGS" value="I$(PAPARAZZI_SRC)/sw/ext/opencv_bebop/install_pc/include"/>
@@ -69,7 +70,7 @@
     <flag name="LDFLAGS" value="ldl"/>
     <flag name="LDFLAGS" value="lm"/>
     <flag name="LDFLAGS" value="lpthread"/>
-    <flag name="LDFLAGS" value="lrt"/>
+    <flag name="LDFLAGS" value="lrt"/>-->
   </makefile>
 </module>
 
