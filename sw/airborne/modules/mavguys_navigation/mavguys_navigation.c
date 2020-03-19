@@ -23,7 +23,7 @@
  poles but for green to detect the floor. When the total amount
  * of green drops below a given threshold (given by floor_count_frac) we assume we are near the edge of the zoo and turn
  * around. The color detection is done by the cv_detect_color_object module, use the FLOOR_VISUAL_DETECTION_ID setting to
- * define which filter to use.
+ * define which filter to use. 
  */
 
 #include "modules/mavguys_navigation/mavguys_navigation.h"
@@ -44,6 +44,7 @@
 #endif
 
 uint8_t chooseRandomIncrementAvoidance(void);
+uint8_t choosedeterminedIncrementAvoidance(void);
 
 enum navigation_state_t {
   SAFE,
@@ -58,6 +59,7 @@ float oag_color_count_frac = 0.18f;       // obstacle detection threshold as a f
 float oag_floor_count_frac = 0.05f;       // floor detection threshold as a fraction of total of image
 float oag_max_speed = 0.5f;               // max flight speed [m/s]
 float oag_heading_rate = RadOfDeg(20.f);  // heading change setpoint for avoidance [rad/s]
+float leftorright = 0.0f;                   //safe, links of rights
 
 // define and initialise global variables
 enum navigation_state_t navigation_state = SEARCH_FOR_SAFE_HEADING;   // current state in state machine
@@ -83,7 +85,7 @@ static void color_detection_cb(uint8_t __attribute__((unused)) sender_id,
   color_count = quality;
 }
 */
-int16_t leftorright = 0; //the value from 0,1,2 for safe, right and left from vision code
+//int16_t leftorright = 1; //the value from 0,1,2 for safe, right and left from vision code
 
 
 #ifndef FLOOR_VISUAL_DETECTION_ID
@@ -136,12 +138,15 @@ void mavguys_navigation_periodic(void)
   VERBOSE_PRINT("Floor centroid: %f\n", floor_centroid_frac);
 
   // update our safe confidence using color threshold
-  if(leftorright = 0){
-    obstacle_free_confidence++;
+  if(leftorright != 0.0f){
+    obstacle_free_confidence -= 2; // be more cautious with positive obstacle detections
+    
   } else {
-    obstacle_free_confidence -= 2;  // be more cautious with positive obstacle detections
+    obstacle_free_confidence++;  
   }
-
+  //VERBOSE_PRINT("left or right, obstacle_free confidence %f\n", leftorright, obstacle_free_confidence);
+  VERBOSE_PRINT("left or right, %f\n",  leftorright);
+  VERBOSE_PRINT("oag color count %f\n", oag_color_count_frac);
   // bound obstacle_free_confidence
   Bound(obstacle_free_confidence, 0, max_trajectory_confidence);
 
@@ -166,8 +171,8 @@ void mavguys_navigation_periodic(void)
       // stop
       guidance_h_set_guided_body_vel(0, 0);
 
-      // randomly select new search direction
-      chooseRandomIncrementAvoidance();
+      // determined select new search direction
+      choosedeterminedIncrementAvoidance();
 
       navigation_state = SEARCH_FOR_SAFE_HEADING;
 
@@ -221,17 +226,9 @@ void mavguys_navigation_periodic(void)
  */
 uint8_t chooseRandomIncrementAvoidance(void)
 {
-  // Randomly choose CW or CCW avoiding direction
-  if (leftorright = 1) {
-    avoidance_heading_direction = 1.f;
-    VERBOSE_PRINT("Set avoidance increment to left %f\n", avoidance_heading_direction * oag_heading_rate);
-    else if(leftorright = 2) {
-    avoidance_heading_direction = -1.f;
-    VERBOSE_PRINT("Set avoidance increment to right %f\n", avoidance_heading_direction * oag_heading_rate);
-    }
-  }
+  
   //uit te commentarieren
-  /*
+  
   if (rand() % 2 == 0) {
     avoidance_heading_direction = 1.f;
     VERBOSE_PRINT("Set avoidance increment to: %f\n", avoidance_heading_direction * oag_heading_rate);
@@ -239,6 +236,19 @@ uint8_t chooseRandomIncrementAvoidance(void)
     avoidance_heading_direction = -1.f;
     VERBOSE_PRINT("Set avoidance increment to: %f\n", avoidance_heading_direction * oag_heading_rate);
   }
-  */
+  
+  return false;
+}
+
+uint8_t choosedeterminedIncrementAvoidance(void){
+// Randomly choose CW or CCW avoiding direction
+  if (leftorright = 1) {
+    avoidance_heading_direction = 1.f;
+    VERBOSE_PRINT("Set avoidance increment to left %f\n", avoidance_heading_direction * oag_heading_rate);
+   } else if(leftorright = 2) {
+    avoidance_heading_direction = -1.f;
+    VERBOSE_PRINT("Set avoidance increment to right %f\n", avoidance_heading_direction * oag_heading_rate);
+    }
+  
   return false;
 }

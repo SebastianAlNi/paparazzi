@@ -44,4 +44,11 @@ For control part:
 use the abibind sending part from one c file to another, then it is not global and cannot be deleted somewhere else.
 use 0, 1, 2 for safe, right, left
 
+questions & progress online meeting 18-03-2020:
+- Luc: wasnt able to start on timer so far
+- Prawien & Barry: some progress on navigation, now test it more with predetermined variable values to predict and fully understand the navigation
+- Sebastiaan:   green detector works partly, but seb needs to gets acces on pixels in paparazzi in c. Lucs joins seb to find out
+- Jean luc & Hakim: a new vertical line (90 deg) detector just to influence on a small scale the confidence. Now start to program to c
+
+
 

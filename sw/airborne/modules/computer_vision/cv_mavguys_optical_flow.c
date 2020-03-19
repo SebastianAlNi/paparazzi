@@ -61,8 +61,7 @@ static struct image_t *determine_optical_flow(struct image_t *img) //struture, i
 {
 	// Find object in C++
 	int isObject;
-	isObject = opencv_optical_flow((char *) img->buf, img->w, img->h, 
-            ); //function in C++
+	isObject = opencv_optical_flow((char *) img->buf, img->w, img->h); //function in C++
 
 	// Rescale
 	//image_yuv422_downsample(img, img, 2);

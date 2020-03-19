@@ -92,7 +92,7 @@
       <define name="VIDEO_CAPTURE_CAMERA" value="front_camera"/>
       <define name="VIDEO_CAPTURE_FPS" value="10"/>
     </module>
-    <module name="cv_mavguys_optical_flow">
+    <!-- <module name="cv_mavguys_optical_flow"> 
       <define name="COLORFILTER_CAMERA" value="front_camera"/>
       <define name="COLORFILTER_FPS" value="0"/>
       <define name="COLOR_OBJECT_DETECTOR_CAMERA2" value="front_camera"/>
@@ -105,7 +105,7 @@
       <define name="COLOR_OBJECT_DETECTOR_CAMERA2" value="front_camera"/>
       <define name="COLOR_OBJECT_DETECTOR_FPS2" value="0"/>
       <define name="COLOR_OBJECT_DETECTOR_DRAW2" value="1"/>
-    </module>
+    </module>-->
     <module name="mavguys_navigation">
       <define name="FLOOR_COLOR_DETECTOR_VISUAL_DETECTION_ID" value="COLOR_OBJECT_DETECTION1_ID"/>
       <define name="FLOOR_VISUAL_DETECTION_ID" value="COLOR_OBJECT_DETECTION2_ID"/>
