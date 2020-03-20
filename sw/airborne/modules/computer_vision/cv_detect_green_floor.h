@@ -49,8 +49,11 @@ extern uint8_t color_cr_min;
 extern uint8_t color_cr_max;
 
 extern float green_threshold;
+extern float obst_threshold;
 extern float floor_count_frac;
+extern int green[520];
 
-extern volatile int color_count;
+//extern volatile int color_count;
+
 
 #endif /* COLORFILTER_CV_PLUGIN_H */
