@@ -44,11 +44,11 @@ int opencv_optical_flow(char *img, int width, int height)
   Mat M(width, height, CV_8UC2, img); // original
   Mat src, srcErode, dst;
 
-  // Blur it
-  blur(M, M, Size(15, 15));
+  // Blur it, check this!
+  //blur(M, M, Size(15, 15));
 
-  // Rescale
-  resize(M, M, Size(), 0.5, 0.5, INTER_AREA);
+  // Rescale, check this!
+  //resize(M, M, Size(), 0.5, 0.5, INTER_AREA);
 
   // Convert UYVY in paparazzi to grayscale in opencv
   cvtColor(M, src, CV_YUV2GRAY_Y422);
@@ -80,7 +80,7 @@ int opencv_optical_flow(char *img, int width, int height)
 	y2 = l[3];
 	X = abs(x2-x1);
 	Y = abs(y2-y1);
-	theta = atan2(Y,X);
+	theta = atan2(X,Y);
  	if (theta < 0.26) {
 		isOobject = true;
 }	

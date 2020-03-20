@@ -63,25 +63,6 @@ static struct image_t *determine_optical_flow(struct image_t *img) //struture, i
 	int isObject;
 	isObject = opencv_optical_flow((char *) img->buf, img->w, img->h); //function in C++
 
-	// Rescale
-	//image_yuv422_downsample(img, img, 2);
-
-	// Filter
-	/*color_count = image_yuv422_colorfilt(img, img,
-	                                       color_lum_min, color_lum_max,
-	                                       color_cb_min, color_cb_max,
-	                                       color_cr_min, color_cr_max);*/
-
-  /*if (COLORFILTER_SEND_OBSTACLE) {
-    if (color_count > 20)
-    {
-      AbiSendMsgOBSTACLE_DETECTION(OBS_DETECTION_COLOR_ID, 1.f, 0.f, 0.f); // name AbiSendMsgOBSTACLE_DETECTION may have to be changed
-    }
-    else
-    {
-      AbiSendMsgOBSTACLE_DETECTION(OBS_DETECTION_COLOR_ID, 10.f, 0.f, 0.f);
-    }
-  }*/
 
   return isObject; // Colorfilter did not make a new image NEW: we want to return 0, or 1 to show that there is an obstacle or not
 }
