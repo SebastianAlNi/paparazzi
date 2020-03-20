@@ -65,8 +65,11 @@ for num in range(1):
     
     #mask = cv2.inRange(img_front_hsv, lower_green_hsv, upper_green_hsv)
     mask = cv2.inRange(img_front_YCrCb, lower_green_YCrCb, upper_green_YCrCb)
+    print(mask[0])
     #edges = cv2.Canny(mask,100,200)
-    edges = cv2.Canny(mask,600,1500)
+    edges = cv2.Canny(mask,600,1500) # not necessary, following steps can also be done on mask
+    #edges = mask
+    #print(edges)
     
     #vectors = cv2.findContours(edges, mode=cv2.RETR_LIST, method=cv2.CHAIN_APPROX_SIMPLE, offset=(0, 0))
     #print(edges)

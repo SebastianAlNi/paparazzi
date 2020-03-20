@@ -62,8 +62,10 @@ uint8_t color_cb_max  = 110;
 uint8_t color_cr_min  = 0;
 uint8_t color_cr_max  = 130;
 
-float green_threshold = 0.85;
+float green_threshold = 0.9;
+float obst_threshold = 0.1;
 float floor_count_frac = 0.05f;       // floor detection threshold as a fraction of total of image
+int green[520];
 
 // Result
 //volatile int color_count = 0;
@@ -110,7 +112,7 @@ uint32_t find_object_centroid(struct image_t *img, int32_t* p_xc, int32_t* p_yc,
   printf("height: %d\n", height); //520
   printf("width: %d\n", width); //240
 
-  int green[height];
+  //int green[height];
   for(int i = 0; i < height; i++){
 	  green[i] = 0;
   }
@@ -149,9 +151,26 @@ uint32_t find_object_centroid(struct image_t *img, int32_t* p_xc, int32_t* p_yc,
     }
   }
 
+  // Filter single and double green columns
+  for(int g = 1; g < height-2; g++){
+	  if(green[g-1] == 0 && green[g] == 1 && green[g+2] == 0){
+		  green[g] = 0;
+		  green[g+1] = 0;
+	  }
+  }
+  if(green[0] == 1 && green[2] == 0){
+	  green[0] = 0;
+	  green[1] = 0;
+  }
+  if(green[height-1] == 1 && green[height-3] == 0){
+	  green[height-1] = 0;
+	  green[height-2] = 0;
+  }
+
   //float green_threshold = 0.8;
   uint32_t floor_count_threshold = floor_count_frac * width * height/2;
   int count_green_columns = 0;
+  int count_obst_columns = 0;
   int green_column_min_index = 0;
   int green_column_max_index = 0;
 
@@ -183,23 +202,27 @@ uint32_t find_object_centroid(struct image_t *img, int32_t* p_xc, int32_t* p_yc,
           sum_indices_green += k;
       }
       else{
+    	  count_obst_columns++;
           sum_indices_obst += k;
       }
   }
 
   int green_length = green_column_max_index - green_column_min_index;
   float ratio_green;
+  float ratio_obst;
   if(green_length != 0){
 	  ratio_green = (float)count_green_columns / (float)green_length;
+	  ratio_obst = (float)count_obst_columns / (float)height;
   }
   else{
 	  ratio_green = 0;
+	  ratio_obst = 1;
   }
 
-  int count_obstacle_pixels = green_length - count_green_columns;
+  //int count_obstacle_pixels = green_length - count_green_columns;
   float cog_obst;
-  if(count_obstacle_pixels > 0){
-	  cog_obst = (float)sum_indices_obst / (float)count_obstacle_pixels;
+  if(count_obst_columns > 0){
+	  cog_obst = (float)sum_indices_obst / (float)count_obst_columns;
   }
   else{
 	  cog_obst = height/2;
@@ -225,7 +248,8 @@ uint32_t find_object_centroid(struct image_t *img, int32_t* p_xc, int32_t* p_yc,
   //else if(cnt < floor_count_threshold){
   //	  command = 3; // out of bounds, little or no floor detected, no direction could be given
   //}
-  else if(ratio_green > green_threshold){
+  //else if(ratio_green > green_threshold){
+  else if(ratio_obst < obst_threshold){
 	  command = 0; // no obstacle found
 	  printf("Case: 3\n");
   }
@@ -244,6 +268,7 @@ uint32_t find_object_centroid(struct image_t *img, int32_t* p_xc, int32_t* p_yc,
   printf("count_green_columns: %d\n", count_green_columns);
   printf("green_length: %d\n", green_length);
   printf("ratio_green: %.2f\n", ratio_green);
+  printf("ratio_obst: %.2f\n", ratio_obst);
   printf("cog_obst: %.2f\n", cog_obst);
   printf("Command: %d\n", command);
 
