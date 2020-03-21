@@ -54,7 +54,13 @@ int opencv_optical_flow(char *img, int width, int height)
   cvtColor(M, src, CV_YUV2GRAY_Y422);
 
   //Erode
-    erode(src, srcErode, getStructuringElement(MORPH_RECT, Size(5, 5)),int iterations=11);
+    //int iterations = 8;
+    //int erosion_point = 1;
+    int erosion_size = 5;
+    //Mat element = getStructuringElement(MORPH_RECT, Size(erosion_size, erosion_size), Point(erosion_point,erosion_point));
+    Mat element = getStructuringElement(MORPH_RECT, Size(erosion_size, erosion_size));
+    //erode(src, srcErode, element, iterations);
+    erode(src, srcErode, element);
 
   // Canny Edge Detector
   int edgeThresh = 30;
@@ -69,7 +75,7 @@ int opencv_optical_flow(char *img, int width, int height)
    int  obj    = 0;
 
 // Draw the lines
-    for( size_t i = 0; i < linesP.size(); i++ )
+    for( int i = 0; i < linesP.size(); i++ )
     {
         Vec4i l = linesP[i];
 	double x1, y1, x2, y2, X, Y, theta;
@@ -82,10 +88,10 @@ int opencv_optical_flow(char *img, int width, int height)
 	Y = abs(y2-y1);
 	theta = atan2(X,Y);
  	if (theta < 0.26) {
-		isOobject = true;
+		isObject = true;
 }	
     }
 
-
+printf("isObject is: %d ", isObject);
   return isObject;
 }
