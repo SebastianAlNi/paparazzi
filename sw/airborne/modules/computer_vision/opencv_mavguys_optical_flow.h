@@ -30,10 +30,7 @@
 extern "C" {
 #endif
 
-int opencv_optical_flow(char *img, int width, int height,
-		int color_lum_min, int color_lum_max,
-		int color_cb_min, int color_cb_max,
-		int color_cr_min, int color_cr_max);
+int opencv_optical_flow(char *img, int width, int height);
 
 #ifdef __cplusplus
 }

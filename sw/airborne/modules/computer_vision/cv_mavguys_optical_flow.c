@@ -31,7 +31,7 @@
 #include "modules/computer_vision/opencv_mavguys_optical_flow.h"
 
 #ifndef COLORFILTER_FPS  // If statement to see if defined or not, if not, it runs the lines between the if statement. 
-#define COLORFILTER_FPS 0       ///< Default FPS (zero means run at camera fps)
+#define COLORFILTER_FPS 10       ///< Default FPS (zero means run at camera fps)
 #endif
 PRINT_CONFIG_VAR(COLORFILTER_FPS) // saves this value I think?
 
@@ -62,6 +62,8 @@ static struct image_t *determine_optical_flow(struct image_t *img) //struture, i
 	// Find object in C++
 	int isObject;
 	isObject = opencv_optical_flow((char *) img->buf, img->w, img->h); //function in C++
+	printf("HAKIM MAGIC OBSTACLE DETECTOR IS RUNNING");
+        printf("isObject is: %d\n ", isObject);
 
 
   return isObject; // Colorfilter did not make a new image NEW: we want to return 0, or 1 to show that there is an obstacle or not
