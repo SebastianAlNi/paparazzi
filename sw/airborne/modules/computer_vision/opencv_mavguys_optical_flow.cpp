@@ -40,6 +40,7 @@ using namespace cv;
 
 int opencv_optical_flow(char *img, int width, int height)
 {
+  printf("opencv_optical_flow called.\n");
   // Create a new image, using the original bebop image.
   Mat M(width, height, CV_8UC2, img); // original
   Mat src, srcErode, dst;

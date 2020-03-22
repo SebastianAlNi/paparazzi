@@ -38,6 +38,25 @@ using namespace cv;
 
 int check = 0;
 
+int opencv_blur(char *img, int width, int height, int val){
+	// Create a new image, using the original bebop image.
+	Mat M(width, height, CV_8UC2, img); // original
+
+	// Convert UYVY in paparazzi to YUV in opencv
+	//cvtColor(M, M, CV_YUV2RGB_Y422);
+	//cvtColor(M, M, CV_RGB2YUV);
+	cvtColor(M, M, CV_YUV2BGR_Y422);
+	
+	// Blur the image
+	//blur(M, M, Size(val, val));
+	GaussianBlur(M, M, Size(val, val), 0);
+	
+	// Convert back to YUV422 and put it in place of the original image
+	colorbgr_opencv_to_yuv422(M, img, width, height);
+	
+	return 0;
+}
+
 int opencv_find_green(char *img, int width, int height,
 		int color_lum_min, int color_lum_max,
 		int color_cb_min, int color_cb_max,

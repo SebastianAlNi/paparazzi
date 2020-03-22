@@ -30,6 +30,8 @@
 extern "C" {
 #endif
 
+int opencv_blur(char *img, int width, int height, int val);
+
 int opencv_find_green(char *img, int width, int height,
 		int color_lum_min, int color_lum_max,
 		int color_cb_min, int color_cb_max,
