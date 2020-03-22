@@ -31,7 +31,8 @@
   <init fun="colorfilter_init()"/>
   <makefile target="ap">
     <file name="cv_detect_green_floor.c"/>
-    <!--<file name="opencv_detect_green_floor_functions.cpp"/>
+    <file name="opencv_detect_green_floor_functions.cpp"/>
+    <file name="opencv_mavguys_optical_flow.cpp"/>
     <file name="opencv_image_functions.cpp"/>
     <flag name="CXXFLAGS" value="I$(PAPARAZZI_SRC)/sw/ext/opencv_bebop/install_arm/include"/>
     
@@ -48,11 +49,12 @@
 	<flag name="LDFLAGS" value="ldl" />
 	<flag name="LDFLAGS" value="lm" />
 	<flag name="LDFLAGS" value="lpthread" />
-	<flag name="LDFLAGS" value="lrt" />-->
+	<flag name="LDFLAGS" value="lrt" />
   </makefile>
   <makefile target="nps">
     <file name="cv_detect_green_floor.c"/>
-    <!--<file name="opencv_detect_green_floor_functions.cpp"/>
+    <file name="opencv_detect_green_floor_functions.cpp"/>
+    <file name="opencv_mavguys_optical_flow.cpp"/>
     <file name="opencv_image_functions.cpp"/>
     
     <flag name="CXXFLAGS" value="I$(PAPARAZZI_SRC)/sw/ext/opencv_bebop/install_pc/include"/>
@@ -70,7 +72,7 @@
     <flag name="LDFLAGS" value="ldl"/>
     <flag name="LDFLAGS" value="lm"/>
     <flag name="LDFLAGS" value="lpthread"/>
-    <flag name="LDFLAGS" value="lrt"/>-->
+    <flag name="LDFLAGS" value="lrt"/>
   </makefile>
 </module>
 

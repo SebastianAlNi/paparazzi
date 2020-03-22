@@ -29,9 +29,12 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include "modules/computer_vision/lib/vision/image.h"
-//#include "modules/computer_vision/opencv_detect_green_floor_functions.h"
+#include "modules/computer_vision/opencv_detect_green_floor_functions.h"
+#include "modules/computer_vision/opencv_mavguys_optical_flow.h"
 //#include "modules/computer_vision/opencv_contour.h"
 #include "subsystems/abi.h" // abi deals with messaging between modules
+
+#include <time.h>
 
 #ifndef COLORFILTER_FPS
 #define COLORFILTER_FPS 10       ///< Default FPS (zero means run at camera fps)
@@ -65,7 +68,8 @@ uint8_t color_cr_max  = 130;
 float green_threshold = 0.9;
 float obst_threshold = 0.1;
 float floor_count_frac = 0.05f;       // floor detection threshold as a fraction of total of image
-uint8_t green[520];
+//uint8_t green[520];
+uint8_t num_upper_pixels_checked = 10; // Number of pixel rows checked in upper image for green obstacles
 
 // Result
 //volatile int color_count = 0;
@@ -94,10 +98,16 @@ uint32_t find_object_centroid(struct image_t *img, int32_t* p_xc, int32_t* p_yc,
                               uint8_t cb_min, uint8_t cb_max,
                               uint8_t cr_min, uint8_t cr_max)
 {
+  clock_t start, end;
+  double cpu_time_used;
+  start = clock();
+
   uint32_t cnt = 0;
+  uint32_t cnt_upper_green = 0;
   uint8_t command = 0;
   uint32_t tot_x = 0;
   uint32_t tot_y = 0;
+  uint32_t tot_upper_y = 0;
 
   // Rescale
   uint8_t scale_factor = 1; // only use powers of 2
@@ -112,7 +122,7 @@ uint32_t find_object_centroid(struct image_t *img, int32_t* p_xc, int32_t* p_yc,
   //printf("height: %d\n", height); //520
   //printf("width: %d\n", width); //240
 
-  //int green[height];
+  int green[height];
   for(uint16_t i = 0; i < height; i++){
 	  green[i] = 0;
   }
@@ -149,6 +159,34 @@ uint32_t find_object_centroid(struct image_t *img, int32_t* p_xc, int32_t* p_yc,
         //}
       }
     }
+
+    for (uint16_t x = img->w-num_upper_pixels_checked-1; x < img->w; x +=scale_factor) { // check top 10 pixel rows for green obstacles
+      // Check if the color is inside the specified values
+      uint8_t *yp, *up, *vp;
+      if (x % 2 == 0) {
+        // Even x
+        up = &buffer[y * 2 * img->w + 2 * x];      // U
+        yp = &buffer[y * 2 * img->w + 2 * x + 1];  // Y1
+        vp = &buffer[y * 2 * img->w + 2 * x + 2];  // V
+        //yp = &buffer[y * 2 * img->w + 2 * x + 3]; // Y2
+      } else {
+        // Uneven x
+        up = &buffer[y * 2 * img->w + 2 * x - 2];  // U
+        //yp = &buffer[y * 2 * img->w + 2 * x - 1]; // Y1
+        vp = &buffer[y * 2 * img->w + 2 * x];      // V
+        yp = &buffer[y * 2 * img->w + 2 * x + 1];  // Y2
+      }
+      if ( (*yp >= lum_min) && (*yp <= lum_max) &&
+           (*up >= cb_min ) && (*up <= cb_max ) &&
+           (*vp >= cr_min ) && (*vp <= cr_max )) { // check if pixel color fulfills filter definition
+    	cnt_upper_green ++; // increase counter variable by 1
+        //tot_x += x;
+        //tot_upper_y += y;
+        //if (draw){
+        //  *yp = 255;  // make pixel brighter in image
+        //}
+      }
+    }
   }
 
   // Filter single and double green columns
@@ -168,11 +206,12 @@ uint32_t find_object_centroid(struct image_t *img, int32_t* p_xc, int32_t* p_yc,
 	  green[height-2] = 0;
   }
 
-  uint32_t floor_count_threshold = floor_count_frac * width * height/2;
-  int count_green_columns = 0;
-  int count_obst_columns = 0;
-  int green_column_min_index = 0;
-  int green_column_max_index = 0;
+  uint32_t floor_count_threshold = floor_count_frac * width/2 * height;
+  uint32_t upper_count_threshold = obst_threshold * num_upper_pixels_checked * height;
+  uint16_t count_green_columns = 0;
+  uint16_t count_obst_columns = 0;
+  uint16_t green_column_min_index = 0;
+  uint16_t green_column_max_index = 0;
 
   // Find left border of green floor
   for(uint16_t i = 0; i < height; i++){
@@ -189,9 +228,6 @@ uint32_t find_object_centroid(struct image_t *img, int32_t* p_xc, int32_t* p_yc,
 		  break;
 	  }
   }
-
-  printf("green_column_min_index: %d\n", green_column_min_index);
-  printf("green_column_max_index: %d\n", green_column_max_index);
 
   int sum_indices_obst = 0;
   int sum_indices_green = 0;
@@ -242,8 +278,13 @@ uint32_t find_object_centroid(struct image_t *img, int32_t* p_xc, int32_t* p_yc,
   }*/
 
   // Check conditions and provide according command for the navigation module
+  // Case 0: Green threshold in upper image area is fulfilled -> green obstacle detected -> turn until out of sight
+  if(cnt_upper_green > upper_count_threshold){
+	  command = 2; // left
+	  printf("Case: 0\n");
+  }
   // Case 1: Right third of image contains no green -> turn left
-  if(green_column_max_index <= height/3*2){ // also holds if no floor at all is detected (at border) because green_column_max_index is initialized as 0
+  else if(green_column_max_index <= height/3*2){ // also holds if no floor at all is detected (at border) because green_column_max_index is initialized as 0
 	  command = 2; // turn left
 	  printf("Case: 1\n");
   }
@@ -275,12 +316,24 @@ uint32_t find_object_centroid(struct image_t *img, int32_t* p_xc, int32_t* p_yc,
 	  printf("Error: No matching command for current situation.\n");
   }
 
+  int isObject;
+  isObject = opencv_optical_flow((char *) img->buf, img->w, img->h); //function in C++
+  printf("isObject is: %d\n ", isObject);
+
+  end = clock();
+  cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
+
+  // Console Output
+  printf("green_column_min_index: %d\n", green_column_min_index);
+  printf("green_column_max_index: %d\n", green_column_max_index);
   printf("count_green_columns: %d\n", count_green_columns);
   printf("green_length: %d\n", green_length);
   printf("ratio_green: %.2f\n", ratio_green);
   printf("ratio_obst: %.2f\n", ratio_obst);
+  printf("ratio_upper_green: %.2f\n", (float)cnt_upper_green/(float)(num_upper_pixels_checked * height));
   printf("cog_obst: %.2f\n", cog_obst);
   printf("Command: %d\n", command);
+  printf("Time: %f\n", cpu_time_used);
 
   /*if (cnt > 0) { // if color was detected (cnt>0), calculate and store centroid coordinates
     *p_xc = (int32_t)roundf(tot_x / ((float) cnt) - img->w * 0.5f);
@@ -295,8 +348,11 @@ uint32_t find_object_centroid(struct image_t *img, int32_t* p_xc, int32_t* p_yc,
 // Function
 static struct image_t *determine_green_func(struct image_t *img)
 {
+	// Blur image with opencv in C++
+	opencv_blur((char *) img->buf, img->w, img->h, 5);
+
 	int32_t x_c, y_c; // coordinates for centroid
-	// Filter and find centroid
+	// Filter, find centroid and get command
 	uint32_t command = find_object_centroid(img, &x_c, &y_c, color_lum_min, color_lum_max, color_cb_min, color_cb_max, color_cr_min, color_cr_max); // x_c and y_c are transferred as pointers, i.e. their values are changed directly in the called function. The function also counts the amount of the specified color and returns it
 
 	AbiSendMsgVISUAL_DETECTION(COLOR_OBJECT_DETECTION2_ID, x_c, y_c, 0, 0, command, 1);
