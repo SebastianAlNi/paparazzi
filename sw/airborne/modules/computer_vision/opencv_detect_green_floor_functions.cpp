@@ -43,13 +43,13 @@ int opencv_blur(char *img, int width, int height, int val){
 	Mat M(width, height, CV_8UC2, img); // original
 
 	// Convert UYVY in paparazzi to YUV in opencv
-	//cvtColor(M, M, CV_YUV2RGB_Y422);
+	cvtColor(M, M, CV_YUV2RGB_Y422);
 	//cvtColor(M, M, CV_RGB2YUV);
-	cvtColor(M, M, CV_YUV2BGR_Y422);
+	//cvtColor(M, M, CV_YUV2BGR_Y422);
 	
 	// Blur the image
-	//blur(M, M, Size(val, val));
-	GaussianBlur(M, M, Size(val, val), 0);
+	blur(M, M, Size(val, val));
+	//GaussianBlur(M, M, Size(val, val), 0);
 	
 	// Convert back to YUV422 and put it in place of the original image
 	colorbgr_opencv_to_yuv422(M, img, width, height);
@@ -90,17 +90,17 @@ int opencv_find_green(char *img, int width, int height,
   //grayscale_opencv_to_yuv422(thresh_image, thresh_image, width, height);
   
   Scalar intensity = M.at<uchar>(0, 0);
-  printf("%d ", intensity.val[0]);
+  printf("%f ", intensity.val[0]); // was %d
   intensity = M.at<uchar>(1, 0);
-  printf("%d ", intensity.val[0]);
+  printf("%f ", intensity.val[0]);
   intensity = M.at<uchar>(2, 0);
-  printf("%d ", intensity.val[0]);
+  printf("%f ", intensity.val[0]);
   intensity = M.at<uchar>(3, 0);
-  printf("%d ", intensity.val[0]);
+  printf("%f ", intensity.val[0]);
   intensity = M.at<uchar>(4, 0);
-  printf("%d ", intensity.val[0]);
+  printf("%f ", intensity.val[0]);
   intensity = M.at<uchar>(5, 0);
-  printf("%d ", intensity.val[0]);
+  printf("%f ", intensity.val[0]);
   printf("\n");
   
   /*if(check == 0){

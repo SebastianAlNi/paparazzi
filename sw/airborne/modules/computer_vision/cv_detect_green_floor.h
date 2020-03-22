@@ -32,8 +32,8 @@
 // Module functions
 //extern void colorfilter_init(void);
 //---------copied--------- from cv_opencvdemo.h
-#ifndef CV_OPENCVDEMO_H
-#define CV_OPENCVDEMO_H
+#ifndef CV_DETECTGREENFLOOR_H
+#define CV_DETECTGREENFLOOR_H
 
 extern void colorfilter_init(void);
 

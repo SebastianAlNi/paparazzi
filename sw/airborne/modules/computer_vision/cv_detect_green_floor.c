@@ -93,7 +93,8 @@ uint8_t num_upper_pixels_checked = 10; // Number of pixel rows checked in upper 
  * @return number of pixels of image within the filter bounds.
  * Image height and width are switched!
  */
-uint32_t find_object_centroid(struct image_t *img, int32_t* p_xc, int32_t* p_yc,
+uint32_t find_object_centroid(struct image_t *img,
+							  //int32_t* p_xc, int32_t* p_yc,
                               uint8_t lum_min, uint8_t lum_max,
                               uint8_t cb_min, uint8_t cb_max,
                               uint8_t cr_min, uint8_t cr_max)
@@ -102,12 +103,12 @@ uint32_t find_object_centroid(struct image_t *img, int32_t* p_xc, int32_t* p_yc,
   double cpu_time_used;
   start = clock();
 
-  uint32_t cnt = 0;
+  //uint32_t cnt = 0;
   uint32_t cnt_upper_green = 0;
   uint8_t command = 0;
-  uint32_t tot_x = 0;
-  uint32_t tot_y = 0;
-  uint32_t tot_upper_y = 0;
+  //uint32_t tot_x = 0;
+  //uint32_t tot_y = 0;
+  //uint32_t tot_upper_y = 0;
 
   // Rescale
   uint8_t scale_factor = 1; // only use powers of 2
@@ -150,12 +151,12 @@ uint32_t find_object_centroid(struct image_t *img, int32_t* p_xc, int32_t* p_yc,
       if ( (*yp >= lum_min) && (*yp <= lum_max) &&
            (*up >= cb_min ) && (*up <= cb_max ) &&
            (*vp >= cr_min ) && (*vp <= cr_max )) { // check if pixel color fulfills filter definition
-        cnt ++; // increase counter variable by 1
-        tot_x += x;
-        tot_y += y;
+        //cnt ++; // increase counter variable by 1
+        //tot_x += x;
+        //tot_y += y;
         green[y/scale_factor] = 1;
         //if (draw){
-        //  *yp = 255;  // make pixel brighter in image
+        //*yp = 255;  // make pixel brighter in image
         //}
       }
     }
@@ -206,9 +207,9 @@ uint32_t find_object_centroid(struct image_t *img, int32_t* p_xc, int32_t* p_yc,
 	  green[height-2] = 0;
   }
 
-  uint32_t floor_count_threshold = floor_count_frac * width/2 * height;
+  //uint32_t floor_count_threshold = floor_count_frac * width/2 * height;
   uint32_t upper_count_threshold = obst_threshold * num_upper_pixels_checked * height;
-  uint16_t count_green_columns = 0;
+  //uint16_t count_green_columns = 0;
   uint16_t count_obst_columns = 0;
   uint16_t green_column_min_index = 0;
   uint16_t green_column_max_index = 0;
@@ -229,36 +230,37 @@ uint32_t find_object_centroid(struct image_t *img, int32_t* p_xc, int32_t* p_yc,
 	  }
   }
 
-  int sum_indices_obst = 0;
-  int sum_indices_green = 0;
+  uint32_t sum_indices_obst = 0;
+  //uint32_t sum_indices_green = 0;
 
   // Count pixel columns with and without obstacle. Sum indices for obstacle centroid calculation
   for(uint16_t k = green_column_min_index; k < green_column_max_index+1; k++){
-      if(green[k] == 1){
+      /*if(green[k] == 1){
           count_green_columns++;
           sum_indices_green += k;
-      }
-      else{
+      }*/
+      //else{
+	  if(green[k] == 0){
     	  count_obst_columns++;
           sum_indices_obst += k;
       }
   }
 
-  int green_length = green_column_max_index - green_column_min_index;
-  float ratio_green;
+  uint16_t green_length = green_column_max_index - green_column_min_index;
+  //float ratio_green;
   float ratio_obst;
 
   // Calculate ratios of green pixel columns (w.r.t. green horizon width) and of obstacle pixel columns (w.r.t. image width)
   if(green_length != 0){
-	  ratio_green = (float)count_green_columns / (float)green_length;
+	  //ratio_green = (float)count_green_columns / (float)green_length;
 	  ratio_obst = (float)count_obst_columns / (float)height;
   }
   else{
-	  ratio_green = 0;
+	  //ratio_green = 0;
 	  ratio_obst = 1;
   }
 
-  //int count_obstacle_pixels = green_length - count_green_columns;
+  //uint_16 count_obstacle_pixels = green_length - count_green_columns;
   float cog_obst;
 
   // Calculate obstacle centroid for heading selection
@@ -269,7 +271,7 @@ uint32_t find_object_centroid(struct image_t *img, int32_t* p_xc, int32_t* p_yc,
 	  cog_obst = height/2;
   }
 
-  /*int cog_green;
+  /*uint_16 cog_green;
   if(count_green_columns != 0){
 	  cog_green = sum_indices_green / count_green_columns;
   }
@@ -326,13 +328,11 @@ uint32_t find_object_centroid(struct image_t *img, int32_t* p_xc, int32_t* p_yc,
   // Console Output
   printf("green_column_min_index: %d\n", green_column_min_index);
   printf("green_column_max_index: %d\n", green_column_max_index);
-  printf("count_green_columns: %d\n", count_green_columns);
-  printf("green_length: %d\n", green_length);
-  printf("ratio_green: %.2f\n", ratio_green);
-  printf("ratio_obst: %.2f\n", ratio_obst);
+  printf("ratio obstacle: %.2f\n", ratio_obst);
   printf("ratio_upper_green: %.2f\n", (float)cnt_upper_green/(float)(num_upper_pixels_checked * height));
   printf("cog_obst: %.2f\n", cog_obst);
   printf("Command: %d\n", command);
+  printf("Clocks per second: %ld\n", CLOCKS_PER_SEC);
   printf("Time: %f\n", cpu_time_used);
 
   /*if (cnt > 0) { // if color was detected (cnt>0), calculate and store centroid coordinates
@@ -349,11 +349,14 @@ uint32_t find_object_centroid(struct image_t *img, int32_t* p_xc, int32_t* p_yc,
 static struct image_t *determine_green_func(struct image_t *img)
 {
 	// Blur image with opencv in C++
-	opencv_blur((char *) img->buf, img->w, img->h, 5);
+	//opencv_blur((char *) img->buf, img->w, img->h, 5);
 
-	int32_t x_c, y_c; // coordinates for centroid
+	int32_t x_c = 0; // coordinates for centroid
+	int32_t y_c = 0;
 	// Filter, find centroid and get command
-	uint32_t command = find_object_centroid(img, &x_c, &y_c, color_lum_min, color_lum_max, color_cb_min, color_cb_max, color_cr_min, color_cr_max); // x_c and y_c are transferred as pointers, i.e. their values are changed directly in the called function. The function also counts the amount of the specified color and returns it
+	uint8_t command = find_object_centroid(img,
+			//&x_c, &y_c,
+			color_lum_min, color_lum_max, color_cb_min, color_cb_max, color_cr_min, color_cr_max); // x_c and y_c are transferred as pointers, i.e. their values are changed directly in the called function. The function also counts the amount of the specified color and returns it
 
 	AbiSendMsgVISUAL_DETECTION(COLOR_OBJECT_DETECTION2_ID, x_c, y_c, 0, 0, command, 1);
 
