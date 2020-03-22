@@ -244,10 +244,10 @@ uint8_t chooseRandomIncrementAvoidance(void)
 
 uint8_t choosedeterminedIncrementAvoidance(void){
 // Randomly choose CW or CCW avoiding direction
-  if (leftorright = 1) {
+  if (leftorright == 1) {
     avoidance_heading_direction = 1.f;
     VERBOSE_PRINT("Set avoidance increment to left %f\n", avoidance_heading_direction * oag_heading_rate);
-   } else if(leftorright = 2) {
+   } else if(leftorright == 2) {
     avoidance_heading_direction = -1.f;
     VERBOSE_PRINT("Set avoidance increment to right %f\n", avoidance_heading_direction * oag_heading_rate);
     }
