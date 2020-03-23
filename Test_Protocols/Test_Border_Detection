@@ -1,0 +1,9 @@
+----------TEST PROTOCOL----------
+
+TEST Border Detection
+Objective: Find out whether the drone detects the Cyberzoo border in all directions
+Tasks: Let the drone fly towards all four sides of the Cyberzoo
+Observations: Drone follows commands, at black backgrounds it turns as expected, at backgrounds with nets it does not always detect the border
+Results: Investigations have shown that the background has green noise that the drone takes for floor.
+Iteration: Image blur was added to reduce background noise.
+Iteration2: Image blur was removed again because it didn't show the expected result
