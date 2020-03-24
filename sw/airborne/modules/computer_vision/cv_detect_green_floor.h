@@ -7,7 +7,7 @@
 #define COLORFILTER_CV_PLUGIN_H
 
 #include <stdint.h>
-#include "modules/computer_vision/cv.h"
+//#include "modules/computer_vision/cv.h"
 
 // Module functions
 //extern void colorfilter_init(void);

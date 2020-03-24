@@ -10,7 +10,7 @@
 //#include <stdbool.h>
 //#include "modules/computer_vision/lib/vision/image.h"
 //#include "modules/computer_vision/opencv_detect_green_floor_functions.h"
-#include "modules/computer_vision/opencv_mavguys_optical_flow.h"
+//#include "modules/computer_vision/opencv_mavguys_optical_flow.h"
 #include "subsystems/abi.h" // abi deals with messaging between modules
 
 #include <time.h>
@@ -174,11 +174,11 @@ uint32_t green_filter_commands(struct image_t *img,
 
   // Alternative calculation of centroid of green area
   /*if (cnt >= 10) { // if color was detected (cnt>0) (with small tolerance), calculate and store centroid coordinates of green area
-    //*p_xc = (int32_t)roundf(tot_x / ((float) cnt) - img->w * 0.5f);
-    //*p_yc = (int32_t)roundf(img->h * 0.5f - tot_y / ((float) cnt));
+    *p_xc = (int32_t)roundf(tot_x / ((float) cnt) - img->w * 0.5f);
+    *p_yc = (int32_t)roundf(img->h * 0.5f - tot_y / ((float) cnt));
 	y_c = (int32_t)roundf(height * 0.5f - tot_y / ((float) cnt));
-  } /*else {
-    //*p_xc = 0;
+  } else {
+    *p_xc = 0;
     *p_yc = 0;
   }*/
 
@@ -366,7 +366,7 @@ uint32_t green_filter_commands(struct image_t *img,
 static struct image_t *determine_green_func(struct image_t *img)
 {
 	// Blur image with opencv in C++
-	opencv_blur((char *) img->buf, img->w, img->h, 5);
+	//opencv_blur((char *) img->buf, img->w, img->h, 5);
 
 	// Filter, find centroid and get command
 	uint8_t command = green_filter_commands(img,
