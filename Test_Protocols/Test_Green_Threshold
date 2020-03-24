@@ -1,0 +1,8 @@
+----------TEST PROTOCOL----------
+
+TEST Green Threshold
+Objective: Find the optimum amount of detected green floor / covered floor by the obstacle. The drone shall not stop too late or too early when detecting an obstacle.
+Tasks: Implement a settings slider to change the threshold during the simulation. Try different thresholds and evaluate their effectiveness.
+Observations: An obstacle threshold of 20 % makes the drone stop too late, a threshold of 10 % lets the drone stop and turn at an adequate distance.
+Results: When an obstacle covers 10 % or more of the green floor, the drone will start turning.
+Iteration: First, the threshold was changed from 20 % to 15 %, later it was changed to 10 %.
