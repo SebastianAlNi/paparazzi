@@ -366,7 +366,7 @@ uint32_t green_filter_commands(struct image_t *img,
 static struct image_t *determine_green_func(struct image_t *img)
 {
 	// Blur image with opencv in C++
-	//opencv_blur((char *) img->buf, img->w, img->h, 5);
+	opencv_blur((char *) img->buf, img->w, img->h, 5);
 
 	// Filter, find centroid and get command
 	uint8_t command = green_filter_commands(img,
