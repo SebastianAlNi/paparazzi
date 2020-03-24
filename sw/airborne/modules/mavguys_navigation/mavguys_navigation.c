@@ -57,8 +57,8 @@ enum navigation_state_t {
 // define settings
 float oag_color_count_frac = 0.18f;       // obstacle detection threshold as a fraction of total of image
 float oag_floor_count_frac = 0.05f;       // floor detection threshold as a fraction of total of image
-float oag_max_speed = 0.5f;               // max flight speed [m/s]
-float oag_heading_rate = RadOfDeg(20.f);  // heading change setpoint for avoidance [rad/s]
+float oag_max_speed = 1.2f;               // max flight speed [m/s]
+float oag_heading_rate = RadOfDeg(50.f);  // heading change setpoint for avoidance [rad/s]
 float leftorright = 0.0f;                   //safe, links of rights
 
 // define and initialise global variables
@@ -189,35 +189,35 @@ void mavguys_navigation_periodic(void)
         guidance_h_set_guided_heading(stateGetNedToBodyEulers_f()->psi);
         navigation_state = SAFE;
       }
-      break;
-    case OUT_OF_BOUNDS:
-      VERBOSE_PRINT("Out of bounds %f\n", navigation_state);
-      VERBOSE_PRINT("Out of bounds %d, obstacle_free_confidence: %d\n", navigation_state, obstacle_free_confidence);
-      // stop
-      guidance_h_set_guided_body_vel(0, 0);
+       break;
+    // case OUT_OF_BOUNDS:
+    //   VERBOSE_PRINT("Out of bounds %f\n", navigation_state);
+    //   VERBOSE_PRINT("Out of bounds %d, obstacle_free_confidence: %d\n", navigation_state, obstacle_free_confidence);
+    //   // stop
+    //   guidance_h_set_guided_body_vel(0, 0);
 
-      // start turn back into arena
-      guidance_h_set_guided_heading_rate(avoidance_heading_direction * RadOfDeg(15));
+    //   // start turn back into arena
+    //   guidance_h_set_guided_heading_rate(avoidance_heading_direction * RadOfDeg(15));
 
-      navigation_state = REENTER_ARENA;
+    //   navigation_state = REENTER_ARENA;
 
-      break;
-    case REENTER_ARENA:
-      VERBOSE_PRINT("ARE YOU NOT ENTERTAINED? %f\n", navigation_state);
-      VERBOSE_PRINT("ARE YOU NOT ENTERTAINED?  %d, obstacle_free_confidence: %d\n", navigation_state, obstacle_free_confidence);
-      // force floor center to opposite side of turn to head back into arena
-      //if (floor_count >= floor_count_threshold && avoidance_heading_direction * floor_centroid_frac >= 0.f){
-        // return to heading mode
-        //guidance_h_set_guided_heading(stateGetNedToBodyEulers_f()->psi);
+    //   break;
+    // case REENTER_ARENA:
+    //   VERBOSE_PRINT("ARE YOU NOT ENTERTAINED? %f\n", navigation_state);
+    //   VERBOSE_PRINT("ARE YOU NOT ENTERTAINED?  %d, obstacle_free_confidence: %d\n", navigation_state, obstacle_free_confidence);
+    //   // force floor center to opposite side of turn to head back into arena
+    //   //if (floor_count >= floor_count_threshold && avoidance_heading_direction * floor_centroid_frac >= 0.f){
+    //     // return to heading mode
+    //     //guidance_h_set_guided_heading(stateGetNedToBodyEulers_f()->psi);
 
-        // reset safe counter
-        //obstacle_free_confidence = 0;
+    //     // reset safe counter
+    //     //obstacle_free_confidence = 0;
 
-        // ensure direction is safe before continuing
-        //navigation_state = SAFE;
+    //     // ensure direction is safe before continuing
+    //     //navigation_state = SAFE;
       
-      break;
-    default:
+    //   break;
+     default:
       break;
   }
   return;
