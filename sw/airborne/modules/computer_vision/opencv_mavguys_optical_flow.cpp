@@ -32,6 +32,7 @@ using namespace std;
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
+#include "opencv2/imgcodecs.hpp"
 #include <math.h> 
 using namespace cv;
 #include "opencv_image_functions.h"
@@ -40,28 +41,20 @@ using namespace cv;
 
 int opencv_optical_flow(char *img, int width, int height)
 {
-  printf("opencv_optical_flow called.\n");
+  //printf("opencv_optical_flow called.\n");
   // Create a new image, using the original bebop image.
   Mat M(width, height, CV_8UC2, img); // original
   Mat src, srcErode, dst;
-
-  // Blur it, check this!
-  //blur(M, M, Size(15, 15));
-
-  // Rescale, check this!
-  //resize(M, M, Size(), 0.5, 0.5, INTER_AREA);
 
   // Convert UYVY in paparazzi to grayscale in opencv
   cvtColor(M, src, CV_YUV2GRAY_Y422);
 
   //Erode
-    //int iterations = 8;
-    //int erosion_point = 1;
+    int iterations = 8;
     int erosion_size = 5;
-    //Mat element = getStructuringElement(MORPH_RECT, Size(erosion_size, erosion_size), Point(erosion_point,erosion_point));
-    Mat element = getStructuringElement(MORPH_RECT, Size(erosion_size, erosion_size));
-    //erode(src, srcErode, element, iterations);
-    erode(src, srcErode, element);
+    Mat element = getStructuringElement(MORPH_RECT, Size(erosion_size,erosion_size));
+    Point Anchor(-1,-1)
+    erode(src, srcErode, element, anchor, iterations);
 
   // Canny Edge Detector
   int edgeThresh = 30;
