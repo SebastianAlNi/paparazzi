@@ -36,6 +36,7 @@
 #include "mcu_periph/sys_time.h"
 #include "state.h"
 #include "firmwares/rotorcraft/stabilization.h"
+#include "cv_detect_green_floor.h"
 
 
 /** Set the default File logger path to the USB drive */
@@ -62,6 +63,7 @@ static void file_logger_write_header(FILE *file) {
   fprintf(file, "att_phi,att_theta,att_psi,");
   fprintf(file, "rate_p,rate_q,rate_r,");
   fprintf(file, "cmd_thrust,cmd_roll,cmd_pitch,cmd_yaw\n");
+  //fprintf(file, "green\n");
 }
 
 /** Write CSV row
@@ -76,6 +78,7 @@ static void file_logger_write_row(FILE *file) {
   struct FloatEulers *att = stateGetNedToBodyEulers_f();
   struct FloatRates *rates = stateGetBodyRates_f();
 
+
   fprintf(file, "%f,", get_sys_time_float());
   fprintf(file, "%f,%f,%f,", pos->x, pos->y, pos->z);
   fprintf(file, "%f,%f,%f,", vel->x, vel->y, vel->z);
@@ -84,6 +87,10 @@ static void file_logger_write_row(FILE *file) {
   fprintf(file, "%d,%d,%d,%d\n",
       stabilization_cmd[COMMAND_THRUST], stabilization_cmd[COMMAND_ROLL],
       stabilization_cmd[COMMAND_PITCH], stabilization_cmd[COMMAND_YAW]);
+  /*for(int i = 0; i < 520; i++){
+	  fprintf(file, "%d,", green[i]);
+  }
+  fprintf(file, "\n");*/
 }
 
 
