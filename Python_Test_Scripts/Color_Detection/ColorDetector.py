@@ -20,7 +20,7 @@ def rescale(img, scale_percent):
     scaled = cv2.resize(img, dim, interpolation = cv2.INTER_AREA)
     return scaled
 
-img_front = cv2.imread('/home/ziemersky/paparazzi/AE4317_2019_datasets/cyberzoo_poles/20190121-135009/85144720.jpg');
+img_front = cv2.imread('/home/ziemersky/paparazzi/AE4317_2019_datasets/sim_poles_panels/20190121-161422/42987000.jpg');
 img_floor = cv2.imread('/home/ziemersky/paparazzi/AE4317_2019_datasets/cyberzoo_bottomcam/20190121-152231/39351172.jpg');
 
 # Text in image options
@@ -42,17 +42,17 @@ thickness = 1
 for num in range(1):
     directory = 'Frame_Series_Mats/'
     filename = directory+'frame_'+str(num+1)+'.jpg'
-    #filename = directory+'frame_'+str(216)+'.jpg'
+    filename = '/home/ziemersky/paparazzi/AE4317_2019_datasets/sim_poles_panels/20190121-161422/42987000.jpg'
     img_front = cv2.imread(filename)
     #plt.imshow(img_front)
     
     img_front = img_front[0:520, 0:150]
-    img_front_blur = cv2.blur(img_front,(15,15))
-    img_front_scaled = rescale(img_front_blur, 50)
+    #img_front_blur = cv2.blur(img_front,(15,15))
+    img_front_scaled = rescale(img_front, 50)
     # Convert BGR to HSV
     # Use YUV instead!!
     #img_front_hsv = cv2.cvtColor(img_front_scaled, cv2.COLOR_BGR2HSV)
-    img_front_YCrCb = cv2.cvtColor(img_front_scaled, cv2.COLOR_BGR2YCrCb)
+    img_front_YCrCb = cv2.cvtColor(img_front_scaled, cv2.COLOR_RGB2YCrCb)
     
     #green = np.uint8([[[0,255,0 ]]])
     #hsv_green = cv2.cvtColor(green,cv2.COLOR_BGR2HSV)
@@ -60,8 +60,10 @@ for num in range(1):
     
     #lower_green_hsv = np.array([15,0,0])
     #upper_green_hsv = np.array([40,255,200])
-    lower_green_YCrCb = np.array([65,120,110])
-    upper_green_YCrCb = np.array([110,132,130])
+    #lower_green_YCrCb = np.array([65,120,110])
+    #upper_green_YCrCb = np.array([110,132,130])
+    lower_green_YCrCb = np.array([0,0,0])
+    upper_green_YCrCb = np.array([255,110,130])
     
     #mask = cv2.inRange(img_front_hsv, lower_green_hsv, upper_green_hsv)
     mask = cv2.inRange(img_front_YCrCb, lower_green_YCrCb, upper_green_YCrCb)
@@ -218,7 +220,7 @@ for num in range(1):
     res = cv2.addWeighted(img_front_scaled,1.0,edges,1.0,0)
     cv2.imwrite(directory+'out_frame'+str(num+1)+'.jpg',res)
     
-    '''plt.subplot(121),plt.imshow(img_front,cmap = 'gray')
+    plt.subplot(121),plt.imshow(img_front,cmap = 'gray')
     plt.title('Original Image'), plt.xticks([]), plt.yticks([])
-    plt.subplot(122),plt.imshow(edges,cmap = 'gray')
-    plt.title('Edge Image'), plt.xticks([]), plt.yticks([])'''
+    plt.subplot(122),plt.imshow(mask,cmap = 'gray')
+    plt.title('Edge Image'), plt.xticks([]), plt.yticks([])

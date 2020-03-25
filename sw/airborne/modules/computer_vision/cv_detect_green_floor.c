@@ -16,7 +16,7 @@
 #include <time.h>
 
 #ifndef COLORFILTER_FPS
-#define COLORFILTER_FPS 5       ///< Default FPS (zero means run at camera fps)
+#define COLORFILTER_FPS 10       ///< Default FPS (zero means run at camera fps)
 #endif
 PRINT_CONFIG_VAR(COLORFILTER_FPS)
 
@@ -264,8 +264,8 @@ uint32_t green_filter_commands(struct image_t *img,
   else{
 	  ct_obst = height/2;
   }
-
-  if(cnt >= 10){
+  // Calculate green centroid only when a lot of green is visible
+  if(cnt >= 1000){
 	  ct_green = sum_indices_green / (float)count_green_columns;
   }
 
@@ -298,17 +298,17 @@ uint32_t green_filter_commands(struct image_t *img,
 	  printf("Case: 0\n");
   }
   // Case 1: Right third of image contains no green -> turn left
-  else if(green_column_max_index <= height * (1-border_green_threshold)){ // also holds if no floor at all is detected (at border) because green_column_max_index is initialized as 0
+  else if(green_column_max_index <= height * (1-border_green_threshold) && cnt > 100){ // also holds if no floor at all is detected (at border) because green_column_max_index is initialized as 0
 	  command = 2; // turn left
 	  printf("Case: 1\n");
   }
   // Case 2: Left third of image contains no green -> turn right
-  else if(green_column_min_index >= height * border_green_threshold){
+  else if(green_column_min_index >= height * border_green_threshold && cnt > 100){
 	  command = 1; // turn right
 	  printf("Case: 2\n");
   }
   //Case 3: Out of bounds, check latest available centroid of green area to determine new heading
-  else if(cnt < 10){
+  else if(cnt < 100){
 	  if(ct_green <= height/2){
 		  command = 2; // left
 		  printf("Case 3: No green floor detected. Last green floor centroid was left.\n");
@@ -338,10 +338,6 @@ uint32_t green_filter_commands(struct image_t *img,
 	  printf("Error: No matching command for current situation.\n");
   }
 
-  /*int isObject;
-  isObject = opencv_optical_flow((char *) img->buf, img->w, img->h); //function in C++
-  printf("isObject is: %d\n ", isObject);*/
-
   end = clock();
   cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
 
@@ -349,15 +345,14 @@ uint32_t green_filter_commands(struct image_t *img,
   // Console Output
   //---------------------------------------
 
-  printf("green_column_min_index: %d\n", green_column_min_index);
-  printf("green_column_max_index: %d\n", green_column_max_index);
+  //printf("green_column_min_index: %d\n", green_column_min_index);
+  //printf("green_column_max_index: %d\n", green_column_max_index);
   printf("ratio obstacle: %.2f\n", ratio_obst);
   printf("ratio_upper_green: %.2f\n", (float)cnt_upper_green/(float)(num_upper_pixels_checked * height));
   printf("ct_obst: %.2f\n", ct_obst);
   printf("ct_green: %d\n", ct_green);
+  printf("cnt: %d\n", cnt);
   printf("Command: %d\n", command);
-  printf("Clocks total: %f\n", ((double) (end - start)));
-  printf("Clocks per second: %ld\n", CLOCKS_PER_SEC);
   printf("Time: %f\n", cpu_time_used);
   return command; // return amount of detected pixels with specified color
 }
