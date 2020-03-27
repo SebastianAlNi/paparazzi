@@ -45,7 +45,7 @@ uint8_t color_cr_min  = 0;
 uint8_t color_cr_max  = 130;
 
 float green_threshold = 0.9;
-float obst_threshold = 0.12;
+float obst_threshold = 0.1;
 float border_green_threshold = 0.3;
 float image_fraction_read = 0.5;
 //float floor_count_frac = 0.05f;       // floor detection threshold as a fraction of total of image
