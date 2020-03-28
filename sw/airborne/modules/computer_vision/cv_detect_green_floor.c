@@ -5,7 +5,7 @@
 
 // Own header
 #include "modules/computer_vision/cv_detect_green_floor.h"
-//#include "modules/computer_vision/cv.h"
+#include "modules/computer_vision/cv.h"
 #include <stdio.h>
 //#include <stdbool.h>
 //#include "modules/computer_vision/lib/vision/image.h"
