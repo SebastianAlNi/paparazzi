@@ -28,6 +28,13 @@ PRINT_CONFIG_VAR(COLORFILTER_SEND_OBSTACLE)
 
 struct video_listener *listener = NULL;
 
+//Function Declaration
+uint8_t green_filter_commands(struct image_t *img,
+							  //int32_t* p_xc, int32_t* p_yc,
+                              uint8_t lum_min, uint8_t lum_max,
+                              uint8_t cb_min, uint8_t cb_max,
+                              uint8_t cr_min, uint8_t cr_max);
+
 // Filter Settings real
 /*uint8_t color_lum_min = 65;
 uint8_t color_lum_max = 110;
@@ -44,20 +51,14 @@ uint8_t color_cb_max  = 110;
 uint8_t color_cr_min  = 0;
 uint8_t color_cr_max  = 130;
 
-float green_threshold = 0.9;
 float obst_threshold = 0.1;
 float border_green_threshold = 0.3;
 float image_fraction_read = 0.5;
-//float floor_count_frac = 0.05f;       // floor detection threshold as a fraction of total of image
-//uint8_t green[520];
 uint8_t num_upper_pixels_checked = 5; // Number of pixel rows checked in upper image for green obstacles
 
 int32_t x_c = 0; // coordinates for centroid, global, so that values from previous frame can be accessed
 int32_t y_c = 0; // Only y_c is used below
 uint16_t ct_green; // green centroid
-
-// Result
-//volatile int color_count = 0;
 
 /*
  * green_filter_commands
@@ -79,7 +80,7 @@ uint16_t ct_green; // green centroid
  * @return command for the navigation module (0/1/2)
  * Image height and width are switched!
  */
-uint32_t green_filter_commands(struct image_t *img,
+uint8_t green_filter_commands(struct image_t *img,
 							  //int32_t* p_xc, int32_t* p_yc,
                               uint8_t lum_min, uint8_t lum_max,
                               uint8_t cb_min, uint8_t cb_max,
@@ -106,17 +107,12 @@ uint32_t green_filter_commands(struct image_t *img,
   uint16_t width = img->w / scale_factor;
   width /= 2; //only consider bottom half of image
 
-  /*struct image_t *img_scaled;
-  image_create(img_scaled, img->w, img->h, IMAGE_YUV422);
-  image_copy(img, img_scaled);*/
-  //image_yuv422_downsample(img, img, scale_factor);
-
   int green[height]; // Array that stores whether a pixel column contains a green pixel or not
   for(uint16_t i = 0; i < height; i++){
 	  green[i] = 0; // Initialize array with zeros
   }
 
-  uint8_t *buffer = img->buf; // find more information about ->buf, ->h and ->w by holding mouse over image_t in function header
+  uint8_t *buffer = img->buf; // copy image buffer
 
   // Go through the pixels of the image's bottom half
   for (uint16_t y = 0; y < img->h; y+=scale_factor) {
@@ -172,16 +168,6 @@ uint32_t green_filter_commands(struct image_t *img,
     }
   }
 
-  // Alternative calculation of centroid of green area
-  /*if (cnt >= 10) { // if color was detected (cnt>0) (with small tolerance), calculate and store centroid coordinates of green area
-    *p_xc = (int32_t)roundf(tot_x / ((float) cnt) - img->w * 0.5f);
-    *p_yc = (int32_t)roundf(img->h * 0.5f - tot_y / ((float) cnt));
-	y_c = (int32_t)roundf(height * 0.5f - tot_y / ((float) cnt));
-  } else {
-    *p_xc = 0;
-    *p_yc = 0;
-  }*/
-
   //---------------------------------------
   // Filter background noise
   //---------------------------------------
@@ -208,11 +194,11 @@ uint32_t green_filter_commands(struct image_t *img,
   //---------------------------------------
 
   //uint32_t floor_count_threshold = floor_count_frac * width/2 * height;
-  uint32_t upper_count_threshold = obst_threshold * num_upper_pixels_checked * height;
-  uint16_t count_green_columns = 0;
-  uint16_t count_obst_columns = 0;
-  uint16_t green_column_min_index = 0;
-  uint16_t green_column_max_index = height-1;
+  uint32_t upper_count_threshold = obst_threshold * num_upper_pixels_checked * height; // threshold for green pixels in upper image
+  uint16_t count_green_columns = 0; // number of pixel columns that contain a green pixel
+  uint16_t count_obst_columns = 0; // number of pixel columns that belong to an obstacle
+  uint16_t green_column_min_index = 0; // smallest column index that belongs to the green floor
+  uint16_t green_column_max_index = height-1; // largest column index that belongs to the green floor
 
   //---------------------------------------
   // Determine left and right borders of green area
@@ -360,27 +346,17 @@ uint32_t green_filter_commands(struct image_t *img,
 // Function
 static struct image_t *determine_green_func(struct image_t *img)
 {
-	// Blur image with opencv in C++
-	//opencv_blur((char *) img->buf, img->w, img->h, 5);
-
 	// Filter, find centroid and get command
 	uint8_t command = green_filter_commands(img,
 			//&x_c, &y_c,
 			color_lum_min, color_lum_max, color_cb_min, color_cb_max, color_cr_min, color_cr_max); // x_c and y_c are transferred as pointers, i.e. their values are changed directly in the called function. The function also counts the amount of the specified color and returns it
 
-	AbiSendMsgVISUAL_DETECTION(COLOR_OBJECT_DETECTION2_ID, x_c, y_c, 0, 0, command, 1);
-
-	//printf("C++ function called.\n");
-	// Find green in C++
-	/*opencv_find_green((char *) img->buf, img->w, img->h,
-            color_lum_min, color_lum_max,
-            color_cb_min, color_cb_max,
-            color_cr_min, color_cr_max);*/
+	AbiSendMsgVISUAL_DETECTION(COLOR_OBJECT_DETECTION2_ID, 0, 0, 0, 0, command, 1);
 
   return img; // Colorfilter did not make a new image
 }
 
 void colorfilter_init(void)
 {
-  cv_add_to_device(&COLORFILTER_CAMERA, determine_green_func, COLORFILTER_FPS);
+	cv_add_to_device(&COLORFILTER_CAMERA, determine_green_func, COLORFILTER_FPS);
 }

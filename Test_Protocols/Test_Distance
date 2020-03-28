@@ -1,0 +1,56 @@
+----------TEST PROTOCOL----------
+
+TEST Distance
+Objective: Get optimal flight parameters
+Tasks: Test flight distance within 10 min for different parameter settings
+Observations: 
+	Max speed: 1.3
+	Obst thresh: 0.1
+	Coinfidence change: -2
+	Crashes: 1 fatal crash after 158 s
+	Distance in 10 min: 221 m (extrapolated)
+
+Cyberzoo setup with poles, panels and mats:
+	Max speed: 1.3
+	Obst thresh: 0.1
+	Coinfidence change: -2
+	Stop at T = 231 s
+	Crashes: 0
+	Distance in 10 min: 226 m (extrapolated)
+
+	Max speed: 1.3
+	Obst thresh: 0.1
+	Coinfidence change: -3, +2
+	Stop at T = 243 s
+	Crashes: 0
+	Distance in 10 min: 218 m (extrapolated)
+
+	Max speed: 1.3
+	Obst thresh: 0.1
+	Coinfidence change: -3
+	Stop at T = 246 s
+	Crashes: 0
+	Distance in 10 min: 220 m (extrapolated)
+
+	Max speed: 1.3
+	Obst thresh: 0.09
+	Coinfidence change: -2
+	Stop at T = 258 s
+	Crashes: 1
+	Distance in 10 min: 220 m (extrapolated)
+
+	Max speed: 1.3
+	Obst thresh: 0.09
+	Coinfidence change: -3
+	Stop at T = 262 s
+	Crashes: 0
+	Distance in 10 min: 198 m (extrapolated)
+
+	Max speed: 1.5
+	Obst thresh: 0.1
+	Coinfidence change: -3
+	Stop at T = 256 s
+	Crashes: 
+	Distance in 10 min: 223 m (extrapolated)
+Results: 
+Iteration: 

@@ -100,7 +100,7 @@ void mavguys_navigation_periodic(void)
     obstacle_free_confidence -= 2; // be more cautious with positive obstacle detections
     
   } else {
-    obstacle_free_confidence++;  
+    obstacle_free_confidence++;
   }
 
   VERBOSE_PRINT("left or right, %f\n",  leftorright);
@@ -112,7 +112,7 @@ void mavguys_navigation_periodic(void)
 
   switch (navigation_state){ //STUDENT ADDITIONS: only SAFE, OBSTACLE_FOUND and SEARCH_FOR_SAFE_HEADING, reenter arena etc is covered in the vision part
     case SAFE:
-      VERBOSE_PRINT("Safe %f\n", navigation_state);
+      VERBOSE_PRINT("Safe %d\n", navigation_state);
       VERBOSE_PRINT("SAFE: %d, obstacle_free_confidence: %d\n", navigation_state, obstacle_free_confidence);
        
       if (obstacle_free_confidence == 0){
@@ -124,7 +124,7 @@ void mavguys_navigation_periodic(void)
 
       break;
     case OBSTACLE_FOUND:
-      VERBOSE_PRINT("Obstacle found %f\n", navigation_state);
+      VERBOSE_PRINT("Obstacle found %d\n", navigation_state);
       VERBOSE_PRINT("Obstacle found: %d, obstacle_free_confidence: %d\n", navigation_state, obstacle_free_confidence);
       // stop
       guidance_h_set_guided_body_vel(0, 0);
@@ -136,7 +136,7 @@ void mavguys_navigation_periodic(void)
 
       break;
     case SEARCH_FOR_SAFE_HEADING:
-      VERBOSE_PRINT("Search for safe heading %f\n", navigation_state);
+      VERBOSE_PRINT("Search for safe heading %d\n", navigation_state);
       VERBOSE_PRINT("Search for safe heading: %d, obstacle_free_confidence: %d\n", navigation_state, obstacle_free_confidence);
       guidance_h_set_guided_heading_rate(avoidance_heading_direction * oag_heading_rate);
 

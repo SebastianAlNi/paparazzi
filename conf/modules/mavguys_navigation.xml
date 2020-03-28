@@ -24,7 +24,7 @@ This document is based on the original orange_avoider_guided xml-file. Some slid
     <file name="mavguys_navigation.h"/>
   </header>
   <init fun="mavguys_navigation_init()"/>
-  <periodic fun="mavguys_navigation_periodic()" freq="5"/>
+  <periodic fun="mavguys_navigation_periodic()" freq="6"/>
   <makefile target="ap|nps">
     <file name="mavguys_navigation.c"/>
   </makefile>

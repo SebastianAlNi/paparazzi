@@ -6,7 +6,8 @@
     #include "subsystems/electrical.h"
     #include "subsystems/radio_control.h"
     #include "subsystems/ahrs.h"
-    #define NPS_GAZEBO_WORLD "cyberzoo_orange_poles.world"
+    //#define NPS_GAZEBO_WORLD "cyberzoo_orange_poles.world"
+    #define NPS_GAZEBO_WORLD "cyberzoo2019_orange_poles_panels_mats.world"
 #include "autopilot.h"
 inline void setNav(void){
   autopilot_mode_auto2 = AP_MODE_NAV;
