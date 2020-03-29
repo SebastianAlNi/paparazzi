@@ -31,7 +31,8 @@
     <file name="cv_detect_green_floor.h"/>
   </header>
 
-  <init fun="colorfilter_init()"/>
+  <init fun="detect_green_floor_init()"/>
+  <periodic fun="detect_green_floor_periodic()" freq="50"/>
   <makefile target="ap">
     <file name="cv_detect_green_floor.c"/>
     <!--<file name="opencv_detect_green_floor_functions.cpp"/>

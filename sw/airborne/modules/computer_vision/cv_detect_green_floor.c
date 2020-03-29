@@ -7,10 +7,10 @@
 #include "modules/computer_vision/cv_detect_green_floor.h"
 #include "modules/computer_vision/cv.h"
 #include <stdio.h>
-//#include <stdbool.h>
+#include <stdbool.h>
+#include "pthread.h"
 //#include "modules/computer_vision/lib/vision/image.h"
 //#include "modules/computer_vision/opencv_detect_green_floor_functions.h"
-//#include "modules/computer_vision/opencv_mavguys_optical_flow.h"
 #include "subsystems/abi.h" // abi deals with messaging between modules
 
 #include <time.h>
@@ -20,6 +20,7 @@
 #endif
 PRINT_CONFIG_VAR(COLORFILTER_FPS)
 
+static pthread_mutex_t mutex; // initialize mutex for thread lock -> important when changing variables that are accessed by multiple threads
 
 #ifndef COLORFILTER_SEND_OBSTACLE
 #define COLORFILTER_SEND_OBSTACLE FALSE    ///< Default sonar/agl to use in opticflow visual_estimator
@@ -33,6 +34,13 @@ uint8_t green_filter_commands(struct image_t *img,
                               uint8_t lum_min, uint8_t lum_max,
                               uint8_t cb_min, uint8_t cb_max,
                               uint8_t cr_min, uint8_t cr_max);
+
+// define global variables
+struct command_object {
+  uint8_t command;
+  bool updated;
+};
+struct command_object global_command;
 
 // Filter Settings real
 /*uint8_t color_lum_min = 65;
@@ -350,12 +358,34 @@ static struct image_t *determine_green_func(struct image_t *img)
 	uint8_t command = green_filter_commands(img,
 			color_lum_min, color_lum_max, color_cb_min, color_cb_max, color_cr_min, color_cr_max); // x_c and y_c are transferred as pointers, i.e. their values are changed directly in the called function. The function also counts the amount of the specified color and returns it
 
-	AbiSendMsgVISUAL_DETECTION(COLOR_OBJECT_DETECTION2_ID, 0, 0, 0, 0, command, 1);
+	//AbiSendMsgVISUAL_DETECTION(COLOR_OBJECT_DETECTION2_ID, 0, 0, 0, 0, command, 1);
 
-  return img; // Colorfilter did not make a new image
+	pthread_mutex_lock(&mutex); // lock threads while accessing common variables
+	global_command.command = command; // store command in command structure
+	global_command.updated = true; // store that command data has been changed
+	pthread_mutex_unlock(&mutex); // release thread lock
+
+	return img; // Colorfilter did not make a new image
 }
 
-void colorfilter_init(void)
+void detect_green_floor_init(void)
 {
-	cv_add_to_device(&COLORFILTER_CAMERA, determine_green_func, COLORFILTER_FPS);
+	global_command.command = 0; // Initialize global command structure
+	global_command.updated = false;
+
+	cv_add_to_device(&COLORFILTER_CAMERA, determine_green_func, COLORFILTER_FPS); // Video callback
+}
+
+void detect_green_floor_periodic(void)
+{
+  static struct command_object local_command; // local command
+
+  pthread_mutex_lock(&mutex); // lock threads so they can't access same variables at the same time
+  local_command = global_command;
+  pthread_mutex_unlock(&mutex); // release thread lock
+
+  if(local_command.updated){ // check whether something changed
+	  AbiSendMsgVISUAL_DETECTION(COLOR_OBJECT_DETECTION2_ID, 0, 0, 0, 0, local_command.command, 1); // send command to navigation module
+	  global_command.updated = false; // store that latest changes are transmitted to navigation module
+  }
 }
