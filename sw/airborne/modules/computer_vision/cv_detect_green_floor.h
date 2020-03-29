@@ -9,11 +9,6 @@
 #include <stdint.h>
 //#include "modules/computer_vision/cv.h"
 
-//extern void colorfilter_init(void);
-//---------copied--------- from cv_opencvdemo.h
-//#ifndef CV_DETECTGREENFLOOR_H
-//#define CV_DETECTGREENFLOOR_H
-
 // Module functions
 extern void colorfilter_init(void);
 
@@ -31,6 +26,3 @@ extern uint8_t color_cr_max;
 extern float obst_threshold;
 extern float border_green_threshold;
 extern float image_fraction_read;
-
-
-//#endif /* COLORFILTER_CV_PLUGIN_H */

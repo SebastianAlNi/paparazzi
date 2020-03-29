@@ -30,7 +30,6 @@ struct video_listener *listener = NULL;
 
 //Function Declaration
 uint8_t green_filter_commands(struct image_t *img,
-							  //int32_t* p_xc, int32_t* p_yc,
                               uint8_t lum_min, uint8_t lum_max,
                               uint8_t cb_min, uint8_t cb_max,
                               uint8_t cr_min, uint8_t cr_max);
@@ -54,11 +53,11 @@ uint8_t color_cr_max  = 130;
 float obst_threshold = 0.1;
 float border_green_threshold = 0.3;
 float image_fraction_read = 0.5;
-uint8_t num_upper_pixels_checked = 5; // Number of pixel rows checked in upper image for green obstacles
+//uint8_t num_upper_pixels_checked = 5; // Number of pixel rows checked in upper image for green obstacles
 
-int32_t x_c = 0; // coordinates for centroid, global, so that values from previous frame can be accessed
-int32_t y_c = 0; // Only y_c is used below
-uint16_t ct_green; // green centroid
+// coordinates for centroid, global, so that values from previous frame can be accessed
+//int32_t y_c = 0; // Only y_c is used below
+uint16_t ct_green = 0; // green centroid
 
 /*
  * green_filter_commands
@@ -81,7 +80,6 @@ uint16_t ct_green; // green centroid
  * Image height and width are switched!
  */
 uint8_t green_filter_commands(struct image_t *img,
-							  //int32_t* p_xc, int32_t* p_yc,
                               uint8_t lum_min, uint8_t lum_max,
                               uint8_t cb_min, uint8_t cb_max,
                               uint8_t cr_min, uint8_t cr_max)
@@ -92,7 +90,7 @@ uint8_t green_filter_commands(struct image_t *img,
   start = clock();
 
   uint32_t cnt = 0;
-  uint32_t cnt_upper_green = 0; // Counter for the green pixels in the upper image -> green obstacle detection
+  //uint32_t cnt_upper_green = 0; // Counter for the green pixels in the upper image -> green obstacle detection
   uint8_t command = 0; // Command that will be returned for the navigation module
   //uint32_t tot_x = 0;
   //uint32_t tot_y = 0;
@@ -143,7 +141,7 @@ uint8_t green_filter_commands(struct image_t *img,
       }
     }
     // Go through the upper pixels of the image to detect a potential green obstacle
-    for (uint16_t x = img->w-num_upper_pixels_checked-1; x < img->w; x +=scale_factor) { // check top 10 pixel rows for green obstacles
+    /*for (uint16_t x = img->w-num_upper_pixels_checked-1; x < img->w; x +=scale_factor) { // check top 10 pixel rows for green obstacles
       // Check if the color is inside the specified values
       uint8_t *yp, *up, *vp;
       if (x % 2 == 0) {
@@ -165,7 +163,7 @@ uint8_t green_filter_commands(struct image_t *img,
     	cnt_upper_green++; // increase counter variable by 1
         //tot_upper_y += y;
       }
-    }
+    }*/
   }
 
   //---------------------------------------
@@ -194,7 +192,7 @@ uint8_t green_filter_commands(struct image_t *img,
   //---------------------------------------
 
   //uint32_t floor_count_threshold = floor_count_frac * width/2 * height;
-  uint32_t upper_count_threshold = obst_threshold * num_upper_pixels_checked * height; // threshold for green pixels in upper image
+  //uint32_t upper_count_threshold = obst_threshold * num_upper_pixels_checked * height; // threshold for green pixels in upper image
   uint16_t count_green_columns = 0; // number of pixel columns that contain a green pixel
   uint16_t count_obst_columns = 0; // number of pixel columns that belong to an obstacle
   uint16_t green_column_min_index = 0; // smallest column index that belongs to the green floor
@@ -241,7 +239,7 @@ uint8_t green_filter_commands(struct image_t *img,
   }
 
   //uint_16 count_obstacle_pixels = green_length - count_green_columns;
-  float ct_obst; // obstacle centroid
+  float ct_obst = 0.0f; // obstacle centroid
 
   // Calculate obstacle centroid for heading selection
   if(count_obst_columns > 0){
@@ -278,13 +276,14 @@ uint8_t green_filter_commands(struct image_t *img,
   //---------------------------------------
 
   // Check conditions and provide according command for the navigation module
+
   // Case 0: Green threshold in upper image area is fulfilled -> green obstacle detected -> turn until out of sight
-  if(cnt_upper_green > upper_count_threshold){
+  /*if(cnt_upper_green > upper_count_threshold){
 	  command = 2; // left
 	  printf("Case: 0\n");
-  }
+  }*/
   // Case 1: Right third of image contains no green -> turn left
-  else if(green_column_max_index <= height * (1-border_green_threshold) && cnt > 100){ // also holds if no floor at all is detected (at border) because green_column_max_index is initialized as 0
+  if(green_column_max_index <= height * (1-border_green_threshold) && cnt > 100){ // also holds if no floor at all is detected (at border) because green_column_max_index is initialized as 0
 	  command = 2; // turn left
 	  printf("Case: 1\n");
   }
@@ -334,12 +333,13 @@ uint8_t green_filter_commands(struct image_t *img,
   //printf("green_column_min_index: %d\n", green_column_min_index);
   //printf("green_column_max_index: %d\n", green_column_max_index);
   printf("ratio obstacle: %.2f\n", ratio_obst);
-  printf("ratio_upper_green: %.2f\n", (float)cnt_upper_green/(float)(num_upper_pixels_checked * height));
+  //printf("ratio_upper_green: %.2f\n", (float)cnt_upper_green/(float)(num_upper_pixels_checked * height));
   printf("ct_obst: %.2f\n", ct_obst);
   printf("ct_green: %d\n", ct_green);
   printf("cnt: %d\n", cnt);
   printf("Command: %d\n", command);
   printf("Time: %f\n", cpu_time_used);
+
   return command; // return amount of detected pixels with specified color
 }
 
@@ -348,7 +348,6 @@ static struct image_t *determine_green_func(struct image_t *img)
 {
 	// Filter, find centroid and get command
 	uint8_t command = green_filter_commands(img,
-			//&x_c, &y_c,
 			color_lum_min, color_lum_max, color_cb_min, color_cb_max, color_cr_min, color_cr_max); // x_c and y_c are transferred as pointers, i.e. their values are changed directly in the called function. The function also counts the amount of the specified color and returns it
 
 	AbiSendMsgVISUAL_DETECTION(COLOR_OBJECT_DETECTION2_ID, 0, 0, 0, 0, command, 1);
