@@ -45,7 +45,7 @@ enum navigation_state_t {
 
 // define settings
 float oag_max_speed = 1.3f;               // max flight speed [m/s]
-float oag_heading_rate = RadOfDeg(30.f);  // heading change setpoint for avoidance [rad/s]
+float oag_heading_rate = RadOfDeg(60.f);  // heading change setpoint for avoidance [rad/s]
 float leftorright = 0.0f;                   //safe, links of rights
 
 // define and initialise global variables
